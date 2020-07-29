@@ -11,4 +11,4 @@
 [codecov-img]: https://img.shields.io/codecov/c/github/FinancialDSL/FinancialDSL.jl/master.svg?label=codecov&style=flat-square
 [codecov-url]: http://codecov.io/github/FinancialDSL/FinancialDSL.jl?branch=master
 
-DSL for Financial Contracts.
+[DSL](https://en.wikipedia.org/wiki/Domain-specific_language) for Financial Contracts.
