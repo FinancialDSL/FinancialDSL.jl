@@ -27,7 +27,7 @@ end
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD, :PETR4 => Symbol("PETR4 DIVIDEND YIELD") ))
     static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
     black_scholes_model = FinancialDSL.Core.BlackScholesModel(static_model)
-    attr = FinancialDSL.Core.ContractAttributes(:riskfree_curves => "onshore", :carry_type => "none")
+    attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
 
     scenario_fixed = FinancialDSL.Core.FixedScenario()
     scenario_fixed[FinancialDSL.Core.DiscountFactor(Symbol("PETR4 DIVIDEND YIELD"), Date(2020, 5, 2))] = 0.95
@@ -90,7 +90,7 @@ end
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :UNDERLYING_STOCK => Symbol("UNDERLYING_STOCK DIVIDEND YIELD") ))
     static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
     black_scholes_model = FinancialDSL.Core.BlackScholesModel(static_model)
-    attr = FinancialDSL.Core.ContractAttributes(:riskfree_curves => "onshore", :carry_type => "none")
+    attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
 
     contract = FinancialDSL.Core.european_call(ticker, k*BRL, maturity)
 

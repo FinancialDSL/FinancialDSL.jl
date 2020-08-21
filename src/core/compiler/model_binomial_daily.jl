@@ -99,7 +99,7 @@ end
     fwd_start_date = dates_range[current_time_step]
     fwd_end_date = dates_range[current_time_step + 1]
 
-    numeraire_carry_symbol = get_riskfree_curve_symbol(model.static_model, ctx.attr[:riskfree_curves], SpotCurrency(model.static_model.functional_currency))
+    numeraire_carry_symbol = get_riskfree_curve_symbol(model.static_model, ctx.attr["riskfree_curves"], SpotCurrency(model.static_model.functional_currency))
     df_numeraire_carry = DiscountFactorForward(numeraire_carry_symbol, fwd_start_date, fwd_end_date)
     return lower!(clone_context_with_model(ctx, model.static_model), df_numeraire_carry, get_pricing_date(ctx))
 end
@@ -111,10 +111,10 @@ end
     fwd_start_date = dates_range[current_time_step]
     fwd_end_date = dates_range[current_time_step + 1]
 
-    numeraire_carry_symbol = get_riskfree_curve_symbol(model.static_model, ctx.attr[:riskfree_curves], SpotCurrency(model.static_model.functional_currency))
+    numeraire_carry_symbol = get_riskfree_curve_symbol(model.static_model, ctx.attr["riskfree_curves"], SpotCurrency(model.static_model.functional_currency))
 
     # For Stocks, the carry is the dividend yield
-    underlying_carry_symbol = get_riskfree_curve_symbol(model.static_model, ctx.attr[:riskfree_curves], model.underlying)
+    underlying_carry_symbol = get_riskfree_curve_symbol(model.static_model, ctx.attr["riskfree_curves"], model.underlying)
 
     # exp(r-q)Δt = df_underlying_carry / df_numeraire_carry
     df_underlying_carry = DiscountFactorForward(underlying_carry_symbol, fwd_start_date, fwd_end_date)

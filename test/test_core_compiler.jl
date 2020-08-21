@@ -35,7 +35,7 @@ end
     pricing_date = Date(2018, 5, 29)
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD ))
     static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
-    attr = FinancialDSL.Core.ContractAttributes(:riskfree_curves => "onshore", :carry_type => "none")
+    attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
 
     scenario = FinancialDSL.Core.FixedScenario()
     scenario[FinancialDSL.Core.SpotCurrency(USD)] = 3.0BRL

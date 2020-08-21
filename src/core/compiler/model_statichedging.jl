@@ -59,9 +59,9 @@ function lower!(ctx::CompilerContext{S}, c::WhenAt{U}, at::Date) :: OptimizingIR
         return lower!(ctx, c.c, at)
     end
 
-    riskfree_discount_factor = DiscountFactor(get_riskfree_curve_symbol(ctx.model, ctx.attr[:riskfree_curves], underlying), mat)
+    riskfree_discount_factor = DiscountFactor(get_riskfree_curve_symbol(ctx.model, ctx.attr["riskfree_curves"], underlying), mat)
 
-    carry_type = ctx.attr[:carry_type]
+    carry_type = ctx.attr["carry_type"]
 
     if carry_type == "none" || (carry_type == "curve" && !has_carry_curve(ctx.attr, underlying) ) || unit.carryless
         discount_factor_process = lower!(ctx, riskfree_discount_factor, at)

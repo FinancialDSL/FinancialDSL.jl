@@ -3,7 +3,7 @@
 A Dictionary to store contract attributes.
 """
 struct ContractAttributes
-    attributes::Dict{Symbol, Any}
+    attributes::Dict{String, Any}
 end
 
 #
