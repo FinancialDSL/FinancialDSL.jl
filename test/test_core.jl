@@ -30,6 +30,8 @@
         attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none", "settlement_currency" => "BRL")
         @test FinancialDSL.Core.get_settlement_currency(attr) == FinancialDSL.Currencies.BRL
     end
+
+    attributes = FinancialDSL.Core.ContractAttributes("price_serie" => Dict("serie_name" => "DI1Q18"))
 end
 
 @testset "equality para RiskFactors" begin

@@ -6,6 +6,12 @@ Base.getindex(a::ContractAttributes, k) = getindex(a.attributes, k)
 Base.haskey(a::ContractAttributes, k) = haskey(a.attributes, k)
 Base.keys(a::ContractAttributes) = keys(a.attributes)
 
+function ContractAttributes(x::Pair)
+    result = ContractAttributes()
+    result[string(x.first)] = x.second
+    return result
+end
+
 function ContractAttributes(x...)
     result = ContractAttributes()
 

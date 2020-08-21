@@ -87,6 +87,12 @@ end
     return InterestRates.discountfactor(curve, rf.maturity)
 end
 
+@inline function  Base.getindex(scenario::ActualScenario, rf::Stock) :: Currencies.Cash
+    sym = rf.ticker
+    value = MarketData.get_cash(scenario.provider, sym, scenario.date)
+    return value
+end
+
 #
 # CompositeScenario
 #
