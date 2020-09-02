@@ -9,7 +9,7 @@ lower!(ctx::CompilerContext, c::Contract) = lower!(ctx, c, initial_state(ctx))
 #
 
 @inline is_initial_state(ctx, state) = initial_state(ctx) == state
-@inline assert_at_initial_state(ctx, state) = @assert is_initial_state(ctx, state)
+@inline assert_at_initial_state(ctx, state) = @assert is_initial_state(ctx, state) "Model not at initial state. Expected initial state = $(initial_state(ctx)), current state = $state."
 
 #
 # Observables
@@ -17,10 +17,6 @@ lower!(ctx::CompilerContext, c::Contract) = lower!(ctx, c, initial_state(ctx))
 
 function lower!(ctx::CompilerContext, o::Konst, state) :: OptimizingIR.ImmutableValue
     return OptimizingIR.constant(o.val)
-end
-
-function lower!(ctx::CompilerContext, o::ModelKonstInput, state) :: OptimizingIR.ImmutableValue
-    return add_input_riskfactor!(ctx, o)
 end
 
 function lower!(ctx::CompilerContext, fwd::DiscountFactorForward, state) :: OptimizingIR.ImmutableValue

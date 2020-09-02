@@ -130,20 +130,14 @@ function price_input_vector(
     input_vector = zeros(Float64, length(input_symbols))
 
     for risk_factor in input_symbols
-
-        if isa(risk_factor, ModelKonstInput)
-            @inbounds input_vector[ OptimizingIR.indexof(input_symbols, risk_factor) ] = risk_factor.val
-        else
-
-            if !isa(risk_factor, SpotCurrency)
+        if !isa(risk_factor, SpotCurrency)
                 # For currencies, `exch` checks wether currency prices are available.
                 # For any other risk factor, the Scenario must provide values for Risk Factors.
                 # See `parse_risk_factor_value`.
                 @assert haskey(scenario, risk_factor) "Scenario has no value for Risk Factor $risk_factor."
-            end
-
-            @inbounds input_vector[ OptimizingIR.indexof(input_symbols, risk_factor) ] = parse_risk_factor_value(scenario, risk_factor, functional_currency)
         end
+
+        @inbounds input_vector[ OptimizingIR.indexof(input_symbols, risk_factor) ] = parse_risk_factor_value(scenario, risk_factor, functional_currency)
     end
 
     return input_vector

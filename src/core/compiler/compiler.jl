@@ -50,7 +50,8 @@ import ..MarketData
 import ..Stock
 import ..BlackScholesModel
 import ..BinomialModelDaily
-import ..ModelKonstInput
+import ..FixedCashRiskFactor
+import ..FixedNonCashRiskFactor
 import ..exch
 import ..risk_factor_symbol
 import ..get_functional_currency

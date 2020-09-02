@@ -22,11 +22,15 @@ function Base.show(io::IO, disc::DiscountFactor; color::Bool=true)
     end
 end
 
-function Base.show(io::IO, i::ModelKonstInput; color::Bool=true)
-    if color
-        printstyled(io, "ModelKonstInput(", i.sym, " = ", i.val, ")", color=:yellow)
-    else
-        print(io, "ModelKonstInput(", i.sym, " = ", i.val, ")")
+for T in (:FixedCashRiskFactor, :FixedNonCashRiskFactor)
+    @eval begin
+        function Base.show(io::IO, i::$T; color::Bool=true)
+            if color
+                printstyled(io, $T,"(", i.rf, " = ", i.val, ")", color=:yellow)
+            else
+                print(io, $T,"(", i.rf, " = ", i.val, ")")
+            end
+        end
     end
 end
 

@@ -163,14 +163,23 @@ market_data_symbol(rf::DiscountFactor) = rf.sym
 Models a pricing model input that is given as a fixed constant,
 but that we would like to consider as a Risk Factor.
 """
-struct ModelKonstInput <: NonCashRiskFactor
-    sym::Symbol
+struct FixedCashRiskFactor{R<:CashRiskFactor} <: CashRiskFactor
+    rf::R
+    val::Currencies.Cash
+end
+
+struct FixedNonCashRiskFactor{R<:NonCashRiskFactor} <: NonCashRiskFactor
+    rf::R
     val::Float64
 end
 
-risk_factor_symbol(rf::ModelKonstInput) = rf.sym
-Base.isless(x, input::ModelKonstInput) = isless(x, input.val)
-Base.isless(input::ModelKonstInput, x) = isless(input.val, x)
+for T in (:FixedCashRiskFactor, :FixedNonCashRiskFactor)
+    @eval begin
+        risk_factor_symbol(rf::$T) = risk_factor_symbol(rf.rf)
+        Base.isless(x, rf::$T) = isless(x, rf.val)
+        Base.isless(rf::$T, x) = isless(rf.val, x)
+    end
+end
 
 #=
 """

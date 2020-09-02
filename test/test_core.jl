@@ -587,6 +587,32 @@ end
     end
 end # @testset "Functional Currency FixedScenario"
 
+@testset "FixedCashRiskFactor, FixedNonCashRiskFactor" begin
+    rf_pre = FinancialDSL.Core.DiscountFactor(:PRE, Date(2020, 12, 1))
+    rf_fixed = FinancialDSL.Core.FixedNonCashRiskFactor(FinancialDSL.Core.DiscountFactor(:BASIS, Date(2020, 12, 1)), 1.0)
+
+    c = FinancialDSL.Core.Scale(rf_fixed, FinancialDSL.Core.WhenAt(Date(2020, 12, 1), FinancialDSL.Core.Amount(1.0BRL)))
+    println(c)
+
+    pricing_date = Date(2018, 5, 29)
+    currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE ))
+    static_model_brl = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+
+    scenario_fixed = FinancialDSL.Core.FixedScenario()
+    scenario_fixed[rf_pre] = 0.7
+
+    attr_onshore_carry_none = FinancialDSL.Core.ContractAttributes(:riskfree_curves => "onshore", :carry_type => "none")
+    pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+    p = FinancialDSL.Core.price(pricer, scenario_fixed)
+    @test p ≈ 0.7
+
+    exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
+    println(exposures_result)
+
+    @test exposures_result[rf_pre] ≈ 0.7
+    @test exposures_result[rf_fixed] ≈ 0.7
+end
+
 @testset "Cashflow projection" begin
 
     @testset "Both Contract" begin

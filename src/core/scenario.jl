@@ -28,6 +28,13 @@ function Base.setindex!(scenario::Scenario, val::Currencies.Cash, c::Currencies.
     nothing
 end
 
+for T in (:FixedCashRiskFactor, :FixedNonCashRiskFactor), S in (:FixedScenario, :ActualScenario)
+    @eval begin
+        Base.haskey(scenario::$S, rf::$T) = true
+        Base.getindex(scenario::$S, rf::$T) = rf.val
+    end
+end
+
 #
 # FixedScenario
 #
