@@ -19,20 +19,6 @@ function lower!(ctx::CompilerContext, o::Konst, state) :: OptimizingIR.Immutable
     return OptimizingIR.constant(o.val)
 end
 
-function lower!(ctx::CompilerContext, fwd::DiscountFactorForward, state) :: OptimizingIR.ImmutableValue
-    if get_pricing_date(ctx) == fwd.start_date
-        # when at start date, a DiscountFactorForward can be simplified to a DiscountFactor
-        return lower!(ctx, DiscountFactor(fwd.sym, fwd.end_date), state)
-    else
-        arg1 = lower!(ctx, DiscountFactor(fwd.sym, fwd.end_date), state)
-        arg2 = lower!(ctx, DiscountFactor(fwd.sym, fwd.start_date), state)
-
-        # arg1 / arg2
-        return add_instruction!(ctx, OP_BIN_SCALAR_DIV, arg1, arg2)
-    end
-end
-
-
 function resolve_op(::Type{LiftObs{F, R}}) :: OptimizingIR.Op where {F<:Function, R<:Number}
     if F == typeof(-)
         return OP_UNARY_SCALAR_SUB

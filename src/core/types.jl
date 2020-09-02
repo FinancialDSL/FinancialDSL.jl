@@ -105,7 +105,7 @@ Rewriting as discount factors, we have:
 
 `` DF_{FWD}^{ b \\to c } = \\frac{ DF^{ a \\to c} }{ DF^{ a \\to b } } ``
 """
-struct DiscountFactorForward <: Observable{Float64}
+struct DiscountFactorForward <: NonCashRiskFactor
     sym::Symbol
     start_date::Date
     end_date::Date
