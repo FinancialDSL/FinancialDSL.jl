@@ -36,6 +36,22 @@ function lower!(ctx::CompilerContext{M}, fwd::DiscountFactorForward, at::Date) :
     end
 end
 
+# simplifies innner DiscountFactorForward
+function lower!(ctx::CompilerContext{M}, rf::FixedNonCashRiskFactor{DiscountFactorForward}, at::Date) :: OptimizingIR.ImmutableValue where {M<:StaticHedgingModel}
+    assert_at_initial_state(ctx, at)
+    fwd = rf.rf
+    if get_pricing_date(ctx) == fwd.start_date
+        # when at start date, a DiscountFactorForward can be simplified to a DiscountFactor
+        return lower!(ctx, FixedNonCashRiskFactor(DiscountFactor(fwd.sym, fwd.end_date), rf.val), at)
+    else
+        arg1 = lower!(ctx, FixedNonCashRiskFactor(DiscountFactor(fwd.sym, fwd.end_date), rf.val), at)
+        arg2 = lower!(ctx, FixedNonCashRiskFactor(DiscountFactor(fwd.sym, fwd.start_date), 1.0), at)
+
+        # arg1 / arg2
+        return add_instruction!(ctx, OP_BIN_SCALAR_DIV, arg1, arg2)
+    end
+end
+
 function lower!(ctx::CompilerContext{StaticHedgingModel{C,P}}, c::Unit{SpotCurrency{C}}, at::Date) :: OptimizingIR.ImmutableValue where {C<:Currencies.Currency, P}
     assert_at_initial_state(ctx, at)
     # same currency
