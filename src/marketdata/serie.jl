@@ -4,15 +4,17 @@
 
 * `get_name(s::AbstractSerie) :: Symbol`
 
-* `has_value(s::AbstractSerie{D, T}, date::D) :: Bool`
-
-* `get_value(h::AbstractSerie{D, T}, date::D; strict::Bool=true) :: T`
-
-* `find_index(serie, date) :: Integer`
-
-* `Base.getindex(s::AbstractSerie{D, T}, index) :: T`
+* `get_value(h::AbstractSerie{D, T}, date::D; locf::Bool=false) :: Union{Missing, T}`
 
 * `get_serie_currency(serie) :: Union{Missing, Currency}`
+
+# Default Implementation
+
+* `get_serie_currency(serie::AbstractSerie) = missing`
+
+# Provided Methods
+
+* `has_value(s::AbstractSerie{D, T}, date::D; locf::Bool=false) :: Bool = !ismissing(get_value(s, date, locf=locf))`
 """
 abstract type AbstractSerie{D, T} end
 
@@ -20,9 +22,18 @@ abstract type AbstractSerie{D, T} end
 @inline value_type(::AbstractSerie{D, T}) where {D, T} = T
 
 get_name(::AbstractSerie) = error("Not implemented")
-has_value(::AbstractSerie, date) = error("Not implemented")
-get_value(::AbstractSerie, date) = error("Not implemented")
-find_index(::AbstractSerie, date) = error("Not implemented")
 
-# Standard implementation. Should be implemented for each AbstractSerie.
+"""
+    get_value(::AbstractSerie, date; locf::Bool=false)
+
+Returns `missing` if value is not available.
+
+* `locf`: last observation carried forward. If `true`, repeats last observation if it exists.
+"""
+get_value(::AbstractSerie, date; locf::Bool=false) = error("Not implemented")
+
+# Default implementation.
 get_serie_currency(serie::AbstractSerie) = missing
+
+# Provided Methods
+has_value(s::AbstractSerie, date; locf::Bool=false) = !ismissing(get_value(s, date; locf=locf))
