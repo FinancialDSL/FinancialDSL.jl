@@ -14,7 +14,7 @@ BusinessDays.initcache(CAL_BRL)
 
 include("BS.jl")
 include("currencies/currencies.jl")
-include("marketdata/marketdata.jl")
+include("marketdata.jl")
 include("core/core.jl")
 
 end # module

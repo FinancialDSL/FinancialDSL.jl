@@ -74,17 +74,12 @@ end
     end
 end
 
+# HistoricalValue degenerates to Konst
 function lower!(ctx::CompilerContext, o::HistoricalValue, state) :: OptimizingIR.ImmutableValue
     assert_at_initial_state(ctx, state)
     provider = get_market_data_provider(get_pricing_model(ctx))
-    @assert MarketData.has_serie(provider, Symbol(o.serie_name)) "Market Data provider doesn't know about $(o.serie_name)."
-    serie = MarketData.get_serie(provider, Symbol(o.serie_name))
-    @assert MarketData.date_type(serie) == Date "date type $(MarketData.date_type(serie)) not supported."
-    @assert MarketData.value_type(serie) == Float64 "HistoricalValue with value type $(MarketData.value_type(serie)) not supported."
-
-    # HistoricalValue degenerates to Konst
     pricing_date = get_pricing_date(ctx)
-    val = MarketData.get_value(serie, pricing_date)::Float64
+    val = MarketData.get_value(provider, Symbol(o.serie_name), pricing_date)::Float64
     return lower!(ctx, Konst(val), pricing_date)
 end
 
