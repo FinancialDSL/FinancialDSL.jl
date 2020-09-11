@@ -79,7 +79,7 @@ function lower!(ctx::CompilerContext, o::HistoricalValue, state) :: OptimizingIR
     assert_at_initial_state(ctx, state)
     provider = get_market_data_provider(get_pricing_model(ctx))
     pricing_date = get_pricing_date(ctx)
-    val = MarketData.get_value(provider, Symbol(o.serie_name), pricing_date)::Float64
+    val = MarketData.get_value(provider, Symbol(o.serie_name), pricing_date, pricing_date; locf=o.locf)::Float64
     return lower!(ctx, Konst(val), pricing_date)
 end
 

@@ -2,21 +2,30 @@
 module MarketData
 
 import ..Currencies
+using Dates
 
 """
 # Interface
 
-* `MarketData.get_value(provider, serie_id, at; locf::Bool=false) :: Union{Missing, T}`
+* `MarketData.get_value(provider, serie_id, at, asof::Date; locf::Bool=false) :: Union{Missing, T}`
 
 * `MarketData.get_serie_currency(provider, serie_id) :: Union{Nothing, Currecies.Currency}`
 
 * `MarketData.has_serie(provider, serie_id) :: Bool`
 
+# Arguments
+
+* `at` : a key to the value of the time series.
+
+* `asof` : the closing date at which the time series is being assessed. This is usually set to the pricing date.
+
+* `locf` : last observation carried forward. Use `locf=true` to repeat the latest observation prior to `at`.
+
 # Provided methods
 
-* `MarketData.has_value(provider, serie_id, at) :: Bool`
+* `MarketData.has_value(provider, serie_id, at, asof::Date; locf::Bool=false) :: Bool`
 
-* `MarketData.get_cash(provider, serie_id, at) :: Currencies.Cash`
+* `MarketData.get_cash(provider, serie_id, at, asof::Date; locf::Bool=false) :: Currencies.Cash`
 
 * `MarketData.assert_has_serie(provider, serie_id)`
 """
@@ -27,7 +36,13 @@ abstract type AbstractMarketDataProvider end
 
 Returns a value for `serie_id` at state (or date) `at`.
 
-`locf` means: last observation carried forward. Use `locf=true` to repeat the latest observation prior to `at`.
+# Arguments
+
+* `at` : a key to the value of the time series.
+
+* `asof` : the date at which the time series is being assessed.
+
+* `locf` : last observation carried forward. Use `locf=true` to repeat the latest observation prior to `at`.
 
 This method should error if `provider` does not know about `serie_id`. Use [`MarketData.assert_has_serie`](@ref) for that.
 """
@@ -42,16 +57,16 @@ This method should error if `provider` does not know about `serie_id`. Use [`Mar
 """
 function get_serie_currency end
 function has_serie end
-has_value(provider::AbstractMarketDataProvider, serie_id, at) = !ismissing(get_value(provider, serie_id, at))
+has_value(provider::AbstractMarketDataProvider, serie_id, at, asof::Date; locf::Bool=false) = !ismissing(get_value(provider, serie_id, at, asof; locf=locf))
 
-function get_cash(provider::AbstractMarketDataProvider, serie_id, at) :: Currencies.Cash
+function get_cash(provider::AbstractMarketDataProvider, serie_id, at, asof::Date; locf::Bool=false) :: Currencies.Cash
 
     currency = get_serie_currency(provider, serie_id)
-    if currenty == nothing
+    if currency == nothing
         error("Serie $serie_id has no currency")
     end
 
-    return get_value(provider, serie_id, at) * currency
+    return get_value(provider, serie_id, at, asof; locf=locf) * currency
 end
 
 """
@@ -68,7 +83,7 @@ end
 struct EmptyMarketDataProvider <: AbstractMarketDataProvider
 end
 
-get_value(::EmptyMarketDataProvider, serie_id, at; locf::Bool=false) = error("EmptyMarketDataProvider has no series")
+get_value(::EmptyMarketDataProvider, serie_id, at, asof::Date; locf::Bool=false) = error("EmptyMarketDataProvider has no series")
 get_serie_currency(::EmptyMarketDataProvider, serie_id) = error("EmptyMarketDataProvider has no series")
 has_serie(::EmptyMarketDataProvider, serie_id) = false
 

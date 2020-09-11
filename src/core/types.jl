@@ -52,6 +52,7 @@ MarketData historical series value observed at the contract acquisition date.
 """
 struct HistoricalValue <: Observable{Float64}
     serie_name::String
+    locf::Bool
 end
 
 """
