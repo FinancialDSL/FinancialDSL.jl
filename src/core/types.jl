@@ -445,9 +445,10 @@ end
 
 A scenario implementation that is linked to a `MarketData.AbstractMarketDataProvider`.
 """
-struct ActualScenario{P<:MarketData.AbstractMarketDataProvider} <: Scenario
+struct ActualScenario{P<:MarketData.AbstractMarketDataProvider, F<:Function} <: Scenario
     provider::P
     date::Date
+    locf_option::F
 end
 
 """

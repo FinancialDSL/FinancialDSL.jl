@@ -75,6 +75,10 @@ Base.isempty(scenario::FixedScenario) = length(scenario) == 0
 # ActualScenario
 #
 
+@inline function get_locf_option(scenario::ActualScenario, sym::Symbol) :: Bool
+    return scenario.locf_option(scenario, sym)
+end
+
 @inline function Base.haskey(act::ActualScenario, rf::RiskFactor)
     result = MarketData.has_serie(act.provider, market_data_symbol(rf))
     if !result
@@ -85,20 +89,19 @@ end
 
 @inline function Base.getindex(scenario::ActualScenario, rf::SpotCurrency{C}) :: Currencies.Cash where {C<:Currencies.Currency}
     sym = market_data_symbol(rf)
-    return MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date)
+    return MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym))
 end
 
 @inline function Base.getindex(scenario::ActualScenario, rf::DiscountFactor) :: Float64
     @assert scenario.date <= rf.maturity "Why get value a DiscountFactor value for a past date? Scenario date $(scenario.date); DiscountFactor maturity: $(rf.maturity)."
     sym = market_data_symbol(rf)
-    curve = MarketData.get_value(scenario.provider, sym, scenario.date, scenario.date) :: InterestRates.AbstractIRCurve
+    curve = MarketData.get_value(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym)) :: InterestRates.AbstractIRCurve
     return InterestRates.discountfactor(curve, rf.maturity)
 end
 
 @inline function  Base.getindex(scenario::ActualScenario, rf::Stock) :: Currencies.Cash
     sym = market_data_symbol(rf)
-    value = MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date)
-    return value
+    return MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym))
 end
 
 #
