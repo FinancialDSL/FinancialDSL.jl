@@ -208,6 +208,7 @@ end
     pricing_date = Date(2018, 5, 29)
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD ))
     static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
     o = FinancialDSL.Core.Konst(10.2)
     lo = FinancialDSL.Core.LiftObs(string, o)
@@ -239,14 +240,14 @@ end
 
     @testset "dolar spot" begin
         c_dol_spot = FinancialDSL.Core.Amount(10.0USD)
-        pricer_dol_spot = FinancialDSL.Core.compile_pricer(pricing_date, static_model, c_dol_spot, FinancialDSL.Core.ContractAttributes())
+        pricer_dol_spot = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, c_dol_spot, FinancialDSL.Core.ContractAttributes())
         @test FinancialDSL.Core.price(pricer_dol_spot, scenario_fixed) == 2.9 * 10.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer_dol_spot, scenario_fixed)
         @test length(exposures_result) == 1
         @test exposures_result[FinancialDSL.Core.SpotCurrency(USD)] == 2.9 * 10.0
 
         # spot position on USD with credit risk, should make no difference
-        pricer_dol_spot_spAA = FinancialDSL.Core.compile_pricer(pricing_date, static_model, c_dol_spot, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "curve"))
+        pricer_dol_spot_spAA = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, c_dol_spot, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "curve"))
         @test FinancialDSL.Core.price(pricer_dol_spot_spAA, scenario_fixed) == 2.9 * 10.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer_dol_spot_spAA, scenario_fixed)
         @test length(exposures_result) == 1
@@ -255,7 +256,7 @@ end
 
     @testset "FX zero-coupon" begin
         c_zcb_usd = FinancialDSL.Core.ZCB(Date(2019, 1, 2), 10.0USD)
-        pricer_zcb_usd = FinancialDSL.Core.compile_pricer(pricing_date, static_model, c_zcb_usd, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
+        pricer_zcb_usd = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, c_zcb_usd, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
         @test length(FinancialDSL.Core.riskfactors(pricer_zcb_usd)) == 2
         @test in(FinancialDSL.Core.SpotCurrency(USD), FinancialDSL.Core.riskfactors(pricer_zcb_usd))
         @test in(FinancialDSL.Core.DiscountFactor(:cpUSD, Date(2019, 1, 2)), FinancialDSL.Core.riskfactors(pricer_zcb_usd))
@@ -268,7 +269,7 @@ end
 
     @testset "FX zero-coupon with credit risk" begin
         c_zcb_usd = FinancialDSL.Core.ZCB(Date(2019, 1, 2), 10.0USD)
-        pricer_zcb_usd_spAA = FinancialDSL.Core.compile_pricer(pricing_date, static_model, c_zcb_usd, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "curve", "carry_curves" => Dict("USD" => "spOnshoreAA")))
+        pricer_zcb_usd_spAA = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, c_zcb_usd, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "curve", "carry_curves" => Dict("USD" => "spOnshoreAA")))
         @test length(FinancialDSL.Core.riskfactors(pricer_zcb_usd_spAA)) == 3
         @test in(FinancialDSL.Core.SpotCurrency(USD), FinancialDSL.Core.riskfactors(pricer_zcb_usd_spAA))
         @test in(FinancialDSL.Core.DiscountFactor(:cpUSD, Date(2019, 1, 2)), FinancialDSL.Core.riskfactors(pricer_zcb_usd_spAA))
@@ -282,7 +283,7 @@ end
 
     @testset "BRL zero-coupon" begin
         c_zcb_pre = FinancialDSL.Core.ZCB(Date(2019, 1, 2), 1000.0BRL)
-        pricer_zcb_pre = FinancialDSL.Core.compile_pricer(pricing_date, static_model, c_zcb_pre, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
+        pricer_zcb_pre = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, c_zcb_pre, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
         @test length(FinancialDSL.Core.riskfactors(pricer_zcb_pre)) == 1
         @test FinancialDSL.Core.riskfactors(pricer_zcb_pre)[1] == FinancialDSL.Core.DiscountFactor(:PRE, Date(2019, 1, 2))
         @test FinancialDSL.Core.price(pricer_zcb_pre, scenario_fixed) ≈ 1000.0 * 0.7
@@ -293,7 +294,7 @@ end
 
     @testset "BRL zero-coupon with credit risk" begin
         c_zcb_pre = FinancialDSL.Core.ZCB(Date(2019, 1, 2), 1000.0BRL)
-        pricer_zcb_pre = FinancialDSL.Core.compile_pricer(pricing_date, static_model, c_zcb_pre, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "curve", "carry_curves" => Dict("BRL" => "spOnshoreAA")))
+        pricer_zcb_pre = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, c_zcb_pre, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "curve", "carry_curves" => Dict("BRL" => "spOnshoreAA")))
         @test length(FinancialDSL.Core.riskfactors(pricer_zcb_pre)) == 2
         @test FinancialDSL.Core.DiscountFactor(:PRE, Date(2019, 1, 2)) ∈ FinancialDSL.Core.riskfactors(pricer_zcb_pre)
         @test FinancialDSL.Core.price(pricer_zcb_pre, scenario_fixed) ≈ 1000.0 * 0.7 * 0.99
@@ -305,13 +306,13 @@ end
 
     @testset "spot position on functional currency" begin
         c_brl_spot = FinancialDSL.Core.Amount(1BRL)
-        pricer_brl_spot = FinancialDSL.Core.compile_pricer(pricing_date, static_model, c_brl_spot, FinancialDSL.Core.ContractAttributes())
+        pricer_brl_spot = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, c_brl_spot, FinancialDSL.Core.ContractAttributes())
         @test FinancialDSL.Core.price(pricer_brl_spot, scenario_fixed) == 1.0
     end
 
     @testset "USD FWD without carry" begin
         c_future_usd = FinancialDSL.Core.Forward(Date(2019, 1, 2), 1USD, 2.9 * 0.9 / 0.7 * BRL)
-        pricer_future_usd = FinancialDSL.Core.compile_pricer(pricing_date, static_model, c_future_usd, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
+        pricer_future_usd = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, c_future_usd, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
         @test FinancialDSL.Core.price(pricer_future_usd, scenario_fixed) ≈ 0.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer_future_usd, scenario_fixed)
         @test length(exposures_result) == 3
@@ -322,7 +323,7 @@ end
 
     @testset "When{When}" begin
         c_when_when = FinancialDSL.Core.WhenAt(Date(2019, 1, 2), FinancialDSL.Core.ZCB(Date(2020, 1, 2), 1USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model, c_when_when, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, c_when_when, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
         @test FinancialDSL.Core.price(pricer, scenario_fixed) ≈ 2.9 * 0.8
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
         @test length(exposures_result) == 2
@@ -334,11 +335,11 @@ end
         fvmodel = FinancialDSL.Core.FutureValueModel(static_model)
 
         c_zcb_brl = FinancialDSL.Core.ZCB(Date(2020, 1, 2), 10.0BRL)
-        pricer_zcb_brl = FinancialDSL.Core.compile_pricer(pricing_date, fvmodel, c_zcb_brl, FinancialDSL.Core.ContractAttributes())
+        pricer_zcb_brl = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, fvmodel, c_zcb_brl, FinancialDSL.Core.ContractAttributes())
         @test FinancialDSL.Core.price(pricer_zcb_brl, scenario_fixed) == 10.0
 
         c_zcb_usd = FinancialDSL.Core.ZCB(Date(2020, 1, 2), 20.0USD)
-        pricer_zcb_usd = FinancialDSL.Core.compile_pricer(pricing_date, fvmodel, c_zcb_usd, FinancialDSL.Core.ContractAttributes())
+        pricer_zcb_usd = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, fvmodel, c_zcb_usd, FinancialDSL.Core.ContractAttributes())
         @test FinancialDSL.Core.price(pricer_zcb_usd, scenario_fixed) ≈ 20.0 * 2.9
     end
 end
@@ -346,8 +347,9 @@ end
 @testset "Functional Currency FixedScenario" begin
     pricing_date = Date(2018, 5, 29)
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD ))
-    static_model_usd = FinancialDSL.Core.StaticHedgingModel(USD, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
-    static_model_brl = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model_usd = FinancialDSL.Core.StaticHedgingModel(USD, currency_to_curves_map)
+    static_model_brl = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
     scenario_fixed = FinancialDSL.Core.FixedScenario()
     scenario_fixed[FinancialDSL.Core.SpotCurrency(USD)] = 2.9BRL
@@ -358,7 +360,7 @@ end
 
     @testset "USD spot position with BRL as functional currency" begin
         c = FinancialDSL.Core.Amount(1.0USD)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 2.9
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -368,7 +370,7 @@ end
 
     @testset "USD spot position with BRL as functional currency with Scale" begin
         c = FinancialDSL.Core.Amount(2.0USD)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 2.0 * 2.9
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -378,7 +380,7 @@ end
 
     @testset "USD Spot Worthless with BRL as functional currency" begin
         c = FinancialDSL.Core.Amount(0.0USD)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -387,7 +389,7 @@ end
 
     @testset "USD spot position with USD as functional currency" begin
         c = FinancialDSL.Core.Amount(1.0USD)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_usd, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_usd, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 1.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -396,7 +398,7 @@ end
 
     @testset "USD spot position with USD as functional currency with Scale" begin
         c = FinancialDSL.Core.Amount(2.0USD)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_usd, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_usd, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 2.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -405,7 +407,7 @@ end
 
     @testset "USD Spot Worthless with USD as functional currency" begin
         c = FinancialDSL.Core.Amount(0.0USD)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_usd, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_usd, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -414,7 +416,7 @@ end
 
     @testset "zero-coupon USD with BRL as functional currency" begin
         c = FinancialDSL.Core.WhenAt(Date(2019, 1, 2), FinancialDSL.Core.Amount(1.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 2.9 * 0.9
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -425,7 +427,7 @@ end
 
     @testset "zero-coupon USD with BRL as functional currency with Scale" begin
         c = FinancialDSL.Core.WhenAt(Date(2019, 1, 2), FinancialDSL.Core.Amount(2.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 2.0 * 2.9 * 0.9
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -436,7 +438,7 @@ end
 
     @testset "zero-coupon USD Worthless with BRL as functional currency" begin
         c = FinancialDSL.Core.WhenAt(Date(2019, 1, 2), FinancialDSL.Core.Amount(0.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -445,7 +447,7 @@ end
 
     @testset "zero-coupon USD at maturity" begin
         c = FinancialDSL.Core.WhenAt(pricing_date, FinancialDSL.Core.Amount(1.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 2.9
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -455,7 +457,7 @@ end
 
     @testset "zero-coupon USD at maturity with Scale" begin
         c = FinancialDSL.Core.WhenAt(pricing_date, FinancialDSL.Core.Amount(2.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 2.0 * 2.9
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -465,7 +467,7 @@ end
 
     @testset "zero-coupon USD Worthless at maturity" begin
         c = FinancialDSL.Core.WhenAt(pricing_date, FinancialDSL.Core.Amount(0.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -474,7 +476,7 @@ end
 
     @testset "zero-coupon USD after maturity" begin
         c = FinancialDSL.Core.WhenAt(pricing_date - Dates.Day(1), FinancialDSL.Core.Amount(1.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -483,7 +485,7 @@ end
 
     @testset "zero-coupon USD after maturity with Scale" begin
         c = FinancialDSL.Core.WhenAt(pricing_date - Dates.Day(1), FinancialDSL.Core.Amount(2.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -492,7 +494,7 @@ end
 
     @testset "zero-coupon USD Worthless after maturity" begin
         c = FinancialDSL.Core.WhenAt(pricing_date - Dates.Day(1), FinancialDSL.Core.Amount(0.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -501,7 +503,7 @@ end
 
     @testset "zero-coupon USD with USD as functional currency" begin
         c = FinancialDSL.Core.WhenAt(Date(2019, 1, 2), FinancialDSL.Core.Amount(1.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_usd, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_usd, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.9
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -511,7 +513,7 @@ end
 
     @testset "zero-coupon USD with USD as functional currency with Scale" begin
         c = FinancialDSL.Core.WhenAt(Date(2019, 1, 2), FinancialDSL.Core.Amount(2.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_usd, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_usd, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 2.0 * 0.9
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -521,7 +523,7 @@ end
 
     @testset "zero-coupon USD Worthless with USD as functional currency" begin
         c = FinancialDSL.Core.WhenAt(Date(2019, 1, 2), FinancialDSL.Core.Amount(0.0USD))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_usd, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_usd, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -530,7 +532,7 @@ end
 
     @testset "BRL Spot with BRL as functional currency" begin
         c = FinancialDSL.Core.Amount(1.0BRL)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 1.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -539,7 +541,7 @@ end
 
     @testset "BRL Spot with BRL as functional currency with Scale" begin
         c = FinancialDSL.Core.Amount(2.0BRL)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 2.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -548,7 +550,7 @@ end
 
     @testset "BRL Spot Worthless with BRL as functional currency" begin
         c = FinancialDSL.Core.Amount(0.0BRL)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.0
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -557,7 +559,7 @@ end
 
     @testset "BRL Spot with USD as functional currency" begin
         c = FinancialDSL.Core.Amount(1.0BRL)
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_usd, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_usd, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 1.0 / 2.9 # 1 BRL cotado em USD
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -567,7 +569,7 @@ end
 
     @testset "zero-coupon BRL with BRL as functional currency" begin
         c = FinancialDSL.Core.WhenAt(Date(2019, 1, 2), FinancialDSL.Core.Amount(1.0BRL))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == 0.7
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -577,7 +579,7 @@ end
 
     @testset "zero-coupon BRL with USD as functional currency" begin
         c = FinancialDSL.Core.WhenAt(Date(2019, 1, 2), FinancialDSL.Core.Amount(1.0BRL))
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_usd, c, attr_onshore_carry_none)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_usd, c, attr_onshore_carry_none)
         p = FinancialDSL.Core.price(pricer, scenario_fixed)
         @test p == (1.0 / 2.9) * 0.7
         exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
@@ -591,7 +593,8 @@ end # @testset "Functional Currency FixedScenario"
     pricing_date = Date(2018, 5, 29)
     rf_pre = FinancialDSL.Core.DiscountFactor(:PRE, Date(2020, 12, 1))
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE ))
-    static_model_brl = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model_brl = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
     scenario_fixed = FinancialDSL.Core.FixedScenario()
     scenario_fixed[rf_pre] = 0.7
@@ -600,7 +603,7 @@ end # @testset "Functional Currency FixedScenario"
     rf_fixed = FinancialDSL.Core.FixedNonCashRiskFactor(FinancialDSL.Core.DiscountFactor(:BASIS, Date(2020, 12, 1)), 1.0)
     c = FinancialDSL.Core.Scale(rf_fixed, FinancialDSL.Core.WhenAt(Date(2020, 12, 1), FinancialDSL.Core.Amount(1.0BRL)))
 
-    pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c, attr_onshore_carry_none)
+    pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c, attr_onshore_carry_none)
     p = FinancialDSL.Core.price(pricer, scenario_fixed)
     @test p ≈ 0.7
 
@@ -613,7 +616,7 @@ end # @testset "Functional Currency FixedScenario"
     # generates two DiscountFactor exposures
     rf_fixed_fwd = FinancialDSL.Core.FixedNonCashRiskFactor(FinancialDSL.Core.DiscountFactorForward(:BASIS, Date(2019,12,1), Date(2020, 12, 1)), 1.0)
     c_fwd = FinancialDSL.Core.Scale(rf_fixed_fwd, FinancialDSL.Core.WhenAt(Date(2020, 12, 1), FinancialDSL.Core.Amount(1.0BRL)))
-    pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c_fwd, attr_onshore_carry_none)
+    pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c_fwd, attr_onshore_carry_none)
     exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
     #println(exposures_result)
     @test length(exposures_result) == 3
@@ -624,7 +627,7 @@ end # @testset "Functional Currency FixedScenario"
     # because forward start date == pricing_date)
     rf_fixed_fwd2 = FinancialDSL.Core.FixedNonCashRiskFactor(FinancialDSL.Core.DiscountFactorForward(:BASIS, pricing_date, Date(2020, 12, 1)), 1.0)
     c_fwd = FinancialDSL.Core.Scale(rf_fixed_fwd2, FinancialDSL.Core.WhenAt(Date(2020, 12, 1), FinancialDSL.Core.Amount(1.0BRL)))
-    pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model_brl, c_fwd, attr_onshore_carry_none)
+    pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model_brl, c_fwd, attr_onshore_carry_none)
     exposures_result = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario_fixed)
     #println(exposures_result)
     @test length(exposures_result) == 2
@@ -667,10 +670,11 @@ end
 
     pricing_date = Date(2018, 5, 29)
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD ))
-    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     attr = FinancialDSL.Core.ContractAttributes(:riskfree_curves => "onshore", :carry_type => "none")
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
-    pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model, contract, attr)
+    pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, contract, attr)
 
     scenario_fixed = FinancialDSL.Core.FixedScenario()
     scenario_fixed[FinancialDSL.Core.DiscountFactor(:PRE, Date(2019, 2, 1))] = 0.9
@@ -685,10 +689,11 @@ end
 
     pricing_date = Date(2018, 5, 29)
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD ))
-    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     attr = FinancialDSL.Core.ContractAttributes(:riskfree_curves => "onshore", :carry_type => "none")
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
-    pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model, swap, attr)
+    pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, swap, attr)
 
     scenario_fixed = FinancialDSL.Core.FixedScenario()
     scenario_fixed[FinancialDSL.Core.DiscountFactor(:PRE, Date(2019, 2, 1))] = 0.9
@@ -697,10 +702,11 @@ end
 
 @testset "Repeated risk-factors" begin
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD ))
-    model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
     dt_analise = Date(2018, 5, 1)
     c = FinancialDSL.Core.Both(FinancialDSL.Core.ZCB(Date(2030, 2, 1), 800USD), FinancialDSL.Core.ZCB(Date(2040, 2, 1), 1000USD))
-    pricer = FinancialDSL.Core.compile_pricer(dt_analise, model, c, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
+    pricer = FinancialDSL.Core.compile_pricer(empty_provider, dt_analise, model, c, FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none"))
 
     scenario_fixed = FinancialDSL.Core.FixedScenario()
     scenario_fixed[FinancialDSL.Core.SpotCurrency(USD)] = 3.5BRL
@@ -716,12 +722,13 @@ end
 
     pricing_date = Date(2018, 5, 29)
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD ))
-    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     fv_model = FinancialDSL.Core.FutureValueModel(static_model)
     attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
     empty_scenario = FinancialDSL.Core.FixedScenario()
-    pricer = FinancialDSL.Core.compile_cashflow_pricer(pricing_date, fv_model, contract, attr)
+    pricer = FinancialDSL.Core.compile_cashflow_pricer(empty_provider, pricing_date, fv_model, contract, attr)
     @test FinancialDSL.Core.get_functional_currency(pricer) == BRL
     for cf in FinancialDSL.Core.eachcashflow(pricer, empty_scenario)
         if cf.event == :AMORT

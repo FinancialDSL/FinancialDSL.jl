@@ -10,15 +10,16 @@
 end
 
 function compile(
-        pricing_date::Date,
         model::PricingModel,
-        contract::Contract,
+        provider::MarketData.AbstractMarketDataProvider,
         attributes::ContractAttributes,
+        pricing_date::Date,
+        contract::Contract,
         target_pricer_type::Type{T}
         ;
         compiler::Symbol=:interpreter) :: AbstractPricer where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
 
-    ctx = CompilerContext(model, attributes, pricing_date, OptimizingIR.ImmutableVariable(:risk_factors_values), target_pricer_type)
+    ctx = CompilerContext(model, provider, attributes, pricing_date, OptimizingIR.ImmutableVariable(:risk_factors_values), target_pricer_type)
 
     price_value = lower!(ctx, contract)
     bind_output!(ctx, :price, price_value)
@@ -28,7 +29,7 @@ function compile(
 end
 
 # an AbstractPricer has a single return value with the price of the contract
-@inline function new_pricer(ctx::CompilerContext{M, IR, AbstractPricer}, f) where {M,IR}
+@inline function new_pricer(ctx::CompilerContext{P, M, IR, AbstractPricer}, f) where {P,M,IR}
 
     @assert length(ctx.program.outputs) == 1 "pricing function should have exactly one output"
 
@@ -40,7 +41,7 @@ end
 end
 
 # an AbstractCashflowPricer has a return value for each cashflow
-@inline function new_pricer(ctx::CompilerContext{M,IR,AbstractCashflowPricer}, f) where {M,IR}
+@inline function new_pricer(ctx::CompilerContext{P,M,IR,AbstractCashflowPricer}, f) where {P,M,IR}
 
     @assert length(ctx.program.outputs) >= 1 "pricing function should have at least one output."
 

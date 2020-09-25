@@ -29,8 +29,9 @@ get_functional_currency(p::CashflowPricer) = p.currency
 # (state argument in lower! method)
 const ObservablesBuffer = Dict{Tuple{BufferedObservable, Any}, OptimizingIR.ImmutableValue}
 
-struct CompilerContext{M<:PricingModel, IR<:OptimizingIR.Program, P<:Union{AbstractPricer, AbstractCashflowPricer}}
+struct CompilerContext{M<:PricingModel, D<:MarketData.AbstractMarketDataProvider, IR<:OptimizingIR.Program, P<:Union{AbstractPricer, AbstractCashflowPricer}}
     model::M
+    provider::D
     attr::ContractAttributes
     pricing_date::Date
     program::IR
@@ -41,9 +42,10 @@ struct CompilerContext{M<:PricingModel, IR<:OptimizingIR.Program, P<:Union{Abstr
     output_var_to_cashflowtype::Dict{OptimizingIR.ImmutableVariable, CashflowType}
 end
 
-function CompilerContext(model::PricingModel, attr::ContractAttributes, pricing_date::Date, input_riskfactors_variable::OptimizingIR.ImmutableVariable, target_pricer_type::DataType) :: CompilerContext
+function CompilerContext(model::PricingModel, provider::MarketData.AbstractMarketDataProvider, attr::ContractAttributes, pricing_date::Date, input_riskfactors_variable::OptimizingIR.ImmutableVariable, target_pricer_type::DataType) :: CompilerContext
     ctx = CompilerContext(
             model,
+            provider,
             attr,
             pricing_date,
             OptimizingIR.BasicBlock(),
@@ -63,6 +65,7 @@ end
 function clone_context_with_model(ctx::CompilerContext, new_model::PricingModel)
     return CompilerContext(
             new_model,
+            ctx.provider,
             ctx.attr,
             ctx.pricing_date,
             ctx.program,
@@ -74,10 +77,11 @@ function clone_context_with_model(ctx::CompilerContext, new_model::PricingModel)
         )
 end
 
+get_market_data_provider(ctx::CompilerContext) = ctx.provider
 get_pricing_model(ctx::CompilerContext) = ctx.model
 get_pricing_date(ctx::CompilerContext) = ctx.pricing_date
 
-@generated function get_target_pricer_type(::Type{CompilerContext{M,IR,P}}) where {M,IR,P}
+@generated function get_target_pricer_type(::Type{CompilerContext{M,D,IR,P}}) where {M,D,IR,P}
     @assert P<:Union{AbstractPricer, AbstractCashflowPricer}
     P
 end

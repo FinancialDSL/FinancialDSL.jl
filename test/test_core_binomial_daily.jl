@@ -16,9 +16,10 @@
     end
 
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD, :PETR4 => Symbol("PETR4 DIVIDEND YIELD") ))
-    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     binomial_daily_model = FinancialDSL.Core.BinomialModelDaily(static_model, FinancialDSL.Core.Stock(:PETR4), InterestRates.BDays252(BusinessDays.BRSettlement()))
     attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
 #=
 PETR4 (underlying price)    N/A 20
@@ -41,8 +42,8 @@ underlying volatility   N/A 200%
     scenario_fixed[FinancialDSL.Core.DiscountFactor(Symbol("PETR4 DIVIDEND YIELD"), Date(2020, 5, 19))] = 0.91
     scenario_fixed[FinancialDSL.Core.Volatility(FinancialDSL.Core.Stock(:PETR4))] = 2.00 # 200%
 
-    call_pricer = FinancialDSL.Core.compile_pricer(pricing_date, binomial_daily_model, call, attr)
-    put_pricer = FinancialDSL.Core.compile_pricer(pricing_date, binomial_daily_model, put, attr)
+    call_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, binomial_daily_model, call, attr)
+    put_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, binomial_daily_model, put, attr)
 
     # pricing
     call_p = FinancialDSL.Core.price(call_pricer, scenario_fixed)
@@ -50,8 +51,8 @@ underlying volatility   N/A 200%
     put_p = FinancialDSL.Core.price(put_pricer, scenario_fixed)
     @test put_p ≈ 0.11224955160760348
 
-    native_call_pricer = FinancialDSL.Core.compile_pricer(pricing_date, binomial_daily_model, call, attr, compiler=:native)
-    native_put_pricer = FinancialDSL.Core.compile_pricer(pricing_date, binomial_daily_model, put, attr, compiler=:native)
+    native_call_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, binomial_daily_model, call, attr, compiler=:native)
+    native_put_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, binomial_daily_model, put, attr, compiler=:native)
     @test call_p ≈ FinancialDSL.Core.price(native_call_pricer, scenario_fixed)
     @test put_p ≈ FinancialDSL.Core.price(native_put_pricer, scenario_fixed)
 
@@ -78,9 +79,10 @@ end
     put = FinancialDSL.Core.american_put(:PETR4, 20.0BRL, Date(2020, 5, 19))
 
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD, :PETR4 => Symbol("PETR4 DIVIDEND YIELD") ))
-    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     binomial_daily_model = FinancialDSL.Core.BinomialModelDaily(static_model, FinancialDSL.Core.Stock(:PETR4), InterestRates.BDays252(BusinessDays.BRSettlement()))
     attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
 #=
 PETR4 (underlying price)    N/A 20
@@ -103,8 +105,8 @@ underlying volatility   N/A 200%
     scenario_fixed[FinancialDSL.Core.DiscountFactor(Symbol("PETR4 DIVIDEND YIELD"), Date(2020, 5, 19))] = 0.91
     scenario_fixed[FinancialDSL.Core.Volatility(FinancialDSL.Core.Stock(:PETR4))] = 2.00 # 200%
 
-    call_pricer = FinancialDSL.Core.compile_pricer(pricing_date, binomial_daily_model, call, attr)
-    put_pricer = FinancialDSL.Core.compile_pricer(pricing_date, binomial_daily_model, put, attr)
+    call_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, binomial_daily_model, call, attr)
+    put_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, binomial_daily_model, put, attr)
 
     # pricing
     call_p = FinancialDSL.Core.price(call_pricer, scenario_fixed)
@@ -112,8 +114,8 @@ underlying volatility   N/A 200%
     put_p = FinancialDSL.Core.price(put_pricer, scenario_fixed)
     @test put_p ≈ 0.6732693664447074
 
-    native_call_pricer = FinancialDSL.Core.compile_pricer(pricing_date, binomial_daily_model, call, attr, compiler=:native)
-    native_put_pricer = FinancialDSL.Core.compile_pricer(pricing_date, binomial_daily_model, put, attr, compiler=:native)
+    native_call_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, binomial_daily_model, call, attr, compiler=:native)
+    native_put_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, binomial_daily_model, put, attr, compiler=:native)
     @test call_p ≈ FinancialDSL.Core.price(native_call_pricer, scenario_fixed)
     @test put_p ≈ FinancialDSL.Core.price(native_put_pricer, scenario_fixed)
 
@@ -134,9 +136,10 @@ end
     zcb = FinancialDSL.Core.WhenAt(Date(2020, 5, 19), FinancialDSL.Core.Amount(1000.0BRL))
 
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD, :PETR4 => Symbol("PETR4 DIVIDEND YIELD") ))
-    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     binomial_daily_model = FinancialDSL.Core.BinomialModelDaily(static_model, FinancialDSL.Core.Stock(:PETR4), InterestRates.BDays252(BusinessDays.BRSettlement()))
     attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
     scenario_fixed = FinancialDSL.Core.FixedScenario()
     scenario_fixed[FinancialDSL.Core.Stock(:PETR4)] = 20.0BRL
@@ -148,7 +151,7 @@ end
     scenario_fixed[FinancialDSL.Core.DiscountFactor(Symbol("PETR4 DIVIDEND YIELD"), Date(2020, 5, 19))] = 0.91
     scenario_fixed[FinancialDSL.Core.Volatility(FinancialDSL.Core.Stock(:PETR4))] = 2.00 # 200%
 
-    pricer = FinancialDSL.Core.compile_pricer(pricing_date, binomial_daily_model, zcb, attr)
+    pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, binomial_daily_model, zcb, attr)
     p = FinancialDSL.Core.price(pricer, scenario_fixed)
     @test p ≈ 1000.0 * 0.7
 

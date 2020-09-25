@@ -77,7 +77,7 @@ end
 # HistoricalValue degenerates to Konst
 function lower!(ctx::CompilerContext, o::HistoricalValue, state) :: OptimizingIR.ImmutableValue
     assert_at_initial_state(ctx, state)
-    provider = get_market_data_provider(get_pricing_model(ctx))
+    provider = get_market_data_provider(ctx)
     pricing_date = get_pricing_date(ctx)
     val = MarketData.get_value(provider, Symbol(o.serie_name), pricing_date, pricing_date; locf=o.locf)::Float64
     return lower!(ctx, Konst(val), pricing_date)

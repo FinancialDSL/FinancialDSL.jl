@@ -13,13 +13,13 @@ function lower!(ctx::CompilerContext{F}, rf::RiskFactor, state) :: OptimizingIR.
     return add_input_riskfactor!(ctx, rf)
 end
 
-function lower!(ctx::CompilerContext{FutureValueModel{C,P}}, c::Unit{SpotCurrency{C}}, at::Date) :: OptimizingIR.ImmutableValue where {C<:Currencies.Currency, P}
+function lower!(ctx::CompilerContext{FutureValueModel{C}}, c::Unit{SpotCurrency{C}}, at::Date) :: OptimizingIR.ImmutableValue where {C<:Currencies.Currency}
     assert_at_initial_state(ctx, at)
     # same currency
     return lower!(ctx, Konst(1.0), at)
 end
 
-function lower!(ctx::CompilerContext{FutureValueModel{C1,P}}, c::Unit{SpotCurrency{C2}}, at::Date) :: OptimizingIR.ImmutableValue where {C1<:Currencies.Currency, C2<:Currencies.Currency, P}
+function lower!(ctx::CompilerContext{FutureValueModel{C1}}, c::Unit{SpotCurrency{C2}}, at::Date) :: OptimizingIR.ImmutableValue where {C1<:Currencies.Currency, C2<:Currencies.Currency}
     assert_at_initial_state(ctx, at)
     return lower!(ctx, c.o, at)
 end

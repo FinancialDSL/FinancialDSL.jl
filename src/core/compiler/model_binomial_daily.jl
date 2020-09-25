@@ -150,7 +150,7 @@ function lower!(ctx::CompilerContext{B}, unit::Unit{Stock}, ::BinomialModelIniti
     return lower!(static_context, unit, pricing_date)
 end
 
-function lower!(ctx::CompilerContext{BinomialModelDaily{C,P,U,T}}, c::Unit{SpotCurrency{C}}, s::AbstractBinomialModelState) :: OptimizingIR.ImmutableValue where {C<:Currencies.Currency, P, U, T}
+function lower!(ctx::CompilerContext{BinomialModelDaily{C,U,T}}, c::Unit{SpotCurrency{C}}, s::AbstractBinomialModelState) :: OptimizingIR.ImmutableValue where {C<:Currencies.Currency, U, T}
     # Same currency -> no exch.
     # Acquisition at state `s`, possibly a future date.
     return lower!(ctx, Konst(1.0), s)

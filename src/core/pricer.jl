@@ -1,10 +1,10 @@
 
-function compile_pricer(pricing_date::Date, model::PricingModel, c::Contract, attr::ContractAttributes; compiler::Symbol=:interpreter)
-    Compiler.compile(pricing_date, model, c, attr, AbstractPricer, compiler=compiler)
+function compile_pricer(provider::MarketData.AbstractMarketDataProvider, pricing_date::Date, model::PricingModel, c::Contract, attr::ContractAttributes; compiler::Symbol=:interpreter)
+    Compiler.compile(model, provider, attr, pricing_date, c, AbstractPricer, compiler=compiler)
 end
 
-function compile_cashflow_pricer(pricing_date::Date, model::PricingModel, c::Contract, attr::ContractAttributes; compiler::Symbol=:interpreter)
-	Compiler.compile(pricing_date, model, c, attr, AbstractCashflowPricer, compiler=compiler)
+function compile_cashflow_pricer(provider::MarketData.AbstractMarketDataProvider, pricing_date::Date, model::PricingModel, c::Contract, attr::ContractAttributes; compiler::Symbol=:interpreter)
+	Compiler.compile(model, provider, attr, pricing_date, c, AbstractCashflowPricer, compiler=compiler)
 end
 
 """

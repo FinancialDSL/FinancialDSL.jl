@@ -43,7 +43,6 @@ import ..riskfactors
 import ..FixedIncomeEvent
 import ..FixedIncomeContract
 import ..SwapContract
-import ..get_market_data_provider
 import ..price
 import ..exposures
 import ..MarketData

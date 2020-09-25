@@ -25,9 +25,10 @@ end
 
     pricing_date = Date(2018, 5, 29)
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD, :PETR4 => Symbol("PETR4 DIVIDEND YIELD") ))
-    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     black_scholes_model = FinancialDSL.Core.BlackScholesModel(static_model)
     attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
     scenario_fixed = FinancialDSL.Core.FixedScenario()
     scenario_fixed[FinancialDSL.Core.DiscountFactor(Symbol("PETR4 DIVIDEND YIELD"), Date(2020, 5, 2))] = 0.95
@@ -35,8 +36,8 @@ end
     scenario_fixed[FinancialDSL.Core.DiscountFactor(:PRE, Date(2020, 5, 2))] = 0.8
     scenario_fixed[FinancialDSL.Core.Volatility(FinancialDSL.Core.Stock(:PETR4))] = 0.3
 
-    call_pricer = FinancialDSL.Core.compile_pricer(pricing_date, black_scholes_model, call, attr)
-    put_pricer = FinancialDSL.Core.compile_pricer(pricing_date, black_scholes_model, put, attr)
+    call_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, black_scholes_model, call, attr)
+    put_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, black_scholes_model, put, attr)
 
     # pricing
     call_p = FinancialDSL.Core.price(call_pricer, scenario_fixed)
@@ -50,8 +51,8 @@ end
     @test call_p ≈ FinancialDSL.BS.bscall(s, k, t, σ)
     @test put_p ≈ FinancialDSL.BS.bsput(s, k, t, σ)
 
-    native_call_pricer = FinancialDSL.Core.compile_pricer(pricing_date, black_scholes_model, call, attr, compiler=:native)
-    native_put_pricer = FinancialDSL.Core.compile_pricer(pricing_date, black_scholes_model, put, attr, compiler=:native)
+    native_call_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, black_scholes_model, call, attr, compiler=:native)
+    native_put_pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, black_scholes_model, put, attr, compiler=:native)
     @test call_p ≈ FinancialDSL.Core.price(native_call_pricer, scenario_fixed)
     @test put_p ≈ FinancialDSL.Core.price(native_put_pricer, scenario_fixed)
 
@@ -88,9 +89,10 @@ end
     qty = 339_824
 
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :UNDERLYING_STOCK => Symbol("UNDERLYING_STOCK DIVIDEND YIELD") ))
-    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     black_scholes_model = FinancialDSL.Core.BlackScholesModel(static_model)
     attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
     contract = FinancialDSL.Core.european_call(ticker, k*BRL, maturity)
 
@@ -100,7 +102,7 @@ end
     scenario_fixed[FinancialDSL.Core.DiscountFactor(:PRE, maturity)] = 0.7088448249661002
     scenario_fixed[FinancialDSL.Core.Volatility(FinancialDSL.Core.Stock(:UNDERLYING_STOCK))] = 1.01393597487
 
-    pricer = FinancialDSL.Core.compile_pricer(pricing_date, black_scholes_model, contract, attr)
+    pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, black_scholes_model, contract, attr)
     p = FinancialDSL.Core.price(pricer, scenario_fixed)
     ex = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaGammaApproxExposuresMethod(), pricer, scenario_fixed)
 

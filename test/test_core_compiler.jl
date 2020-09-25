@@ -34,8 +34,9 @@ end
 
     pricing_date = Date(2018, 5, 29)
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD ))
-    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, FinancialDSL.MarketData.EmptyMarketDataProvider(), currency_to_curves_map)
+    static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     attr = FinancialDSL.Core.ContractAttributes("riskfree_curves" => "onshore", "carry_type" => "none")
+    empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
     scenario = FinancialDSL.Core.FixedScenario()
     scenario[FinancialDSL.Core.SpotCurrency(USD)] = 3.0BRL
@@ -47,7 +48,7 @@ end
             FinancialDSL.Core.Both(FinancialDSL.Core.Amount(10.0, BRL), FinancialDSL.Core.Amount(10.0, BRL)),
             FinancialDSL.Core.Amount(10.0, USD))
 
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model, contract, attr)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, contract, attr)
         println("Printing pricer for contract")
         println(contract)
         println(pricer)
@@ -62,7 +63,7 @@ end
     let
         contract = FinancialDSL.Core.WhenAt(Date(2019, 2, 1), FinancialDSL.Core.Amount(10.0, USD))
 
-        pricer = FinancialDSL.Core.compile_pricer(pricing_date, static_model, contract, attr)
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, contract, attr)
         p = FinancialDSL.Core.price(pricer, scenario)
         @test p ≈ 10.0 * 3.0 * 0.8
 

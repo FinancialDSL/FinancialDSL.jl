@@ -52,13 +52,13 @@ function lower!(ctx::CompilerContext{M}, rf::FixedNonCashRiskFactor{DiscountFact
     end
 end
 
-function lower!(ctx::CompilerContext{StaticHedgingModel{C,P}}, c::Unit{SpotCurrency{C}}, at::Date) :: OptimizingIR.ImmutableValue where {C<:Currencies.Currency, P}
+function lower!(ctx::CompilerContext{StaticHedgingModel{C}}, c::Unit{SpotCurrency{C}}, at::Date) :: OptimizingIR.ImmutableValue where {C<:Currencies.Currency}
     assert_at_initial_state(ctx, at)
     # same currency
     return lower!(ctx, Konst(1.0), at)
 end
 
-function lower!(ctx::CompilerContext{StaticHedgingModel{C1,P}}, c::Unit{SpotCurrency{C2}}, at::Date) :: OptimizingIR.ImmutableValue where {C1<:Currencies.Currency, C2<:Currencies.Currency, P}
+function lower!(ctx::CompilerContext{StaticHedgingModel{C1}}, c::Unit{SpotCurrency{C2}}, at::Date) :: OptimizingIR.ImmutableValue where {C1<:Currencies.Currency, C2<:Currencies.Currency}
     assert_at_initial_state(ctx, at)
     return lower!(ctx, c.o, at)
 end
@@ -74,7 +74,7 @@ function lower!(ctx::CompilerContext{M}, o::ObservableAt, at::Date) :: Optimizin
 end
 
 # Present Value for a Unit
-function lower!(ctx::CompilerContext{S}, c::WhenAt{U}, at::Date) :: OptimizingIR.ImmutableValue where {U<:Unit, S<:StaticHedgingModel}
+function lower!(ctx::CompilerContext{M}, c::WhenAt{U}, at::Date) :: OptimizingIR.ImmutableValue where {U<:Unit, M<:StaticHedgingModel}
     assert_at_initial_state(ctx, at)
     pricing_date = get_pricing_date(ctx)
 
@@ -119,7 +119,7 @@ function lower!(ctx::CompilerContext{S}, c::WhenAt{U}, at::Date) :: OptimizingIR
 end
 
 # TODO: is this a general rule, or only applies to StaticHedgingModel / FutureValueModel ?
-function lower!(ctx::CompilerContext{S}, c::WhenAt{Scale}, state) :: OptimizingIR.ImmutableValue where {S<:StaticHedgingModel}
+function lower!(ctx::CompilerContext{M}, c::WhenAt{Scale}, state) :: OptimizingIR.ImmutableValue where {M<:StaticHedgingModel}
     assert_at_initial_state(ctx, state)
     pricing_date = get_pricing_date(ctx)
 
