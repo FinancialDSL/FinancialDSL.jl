@@ -59,6 +59,7 @@ end
     @testset "Konst eager algebra" begin
         k = FinancialDSL.Core.Konst(2.0)
         @test !iszero(k)
+        @test !FinancialDSL.Core.iszerokonst(k)
         @test -k == FinancialDSL.Core.Konst(-2.0)
         @test -(-k) == k
         @test k^2 == FinancialDSL.Core.Konst(4.0)
@@ -78,8 +79,11 @@ end
 
         z = FinancialDSL.Core.Konst(0.0)
         @test iszero(z)
+        @test FinancialDSL.Core.iszerokonst(z)
         z = FinancialDSL.Core.Konst(0)
         @test iszero(z)
+        @test FinancialDSL.Core.iszerokonst(z)
+        @test !FinancialDSL.Core.iszerokonst(FinancialDSL.Core.SpotCurrency(BRL))
     end
 
     @testset "Special functions" begin

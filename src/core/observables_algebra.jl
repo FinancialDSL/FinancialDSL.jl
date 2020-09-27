@@ -32,6 +32,15 @@ Base.log(o::Observable) = LiftObs(log, o)
 Base.exp(o::LiftObs{typeof(log)}) = o.o
 Base.log(o::LiftObs{typeof(exp)}) = o.o
 
+"""
+    iszerokonst(observable) :: Bool
+
+Returns `true` if `observable` is of type `Konst` and has a zero value.
+Returns `false` otherwise.
+"""
+iszerokonst(k::Konst) = iszero(k)
+iszerokonst(k::Observable) = false
+
 #
 # Associative ops
 #
