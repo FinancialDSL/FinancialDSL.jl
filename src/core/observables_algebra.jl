@@ -25,6 +25,7 @@ end
 
 Base.round(k::Konst; digits=0) = Konst(round(k.val; digits=digits))
 Base.trunc(k::Konst; digits=0) = Konst(trunc(k.val; digits=digits))
+Base.iszero(k::Konst) = iszero(k.val)
 Base.sqrt(o::Observable) = LiftObs(sqrt, o)
 Base.exp(o::Observable) = LiftObs(exp, o)
 Base.log(o::Observable) = LiftObs(log, o)

@@ -58,6 +58,7 @@ end
 @testset "Observables Albebra" begin
     @testset "Konst eager algebra" begin
         k = FinancialDSL.Core.Konst(2.0)
+        @test !iszero(k)
         @test -k == FinancialDSL.Core.Konst(-2.0)
         @test -(-k) == k
         @test k^2 == FinancialDSL.Core.Konst(4.0)
@@ -74,6 +75,11 @@ end
 
         @test kk + kk * kk == FinancialDSL.Core.Konst(12.0)
         @test 2kk == FinancialDSL.Core.Konst(6.0)
+
+        z = FinancialDSL.Core.Konst(0.0)
+        @test iszero(z)
+        z = FinancialDSL.Core.Konst(0)
+        @test iszero(z)
     end
 
     @testset "Special functions" begin
