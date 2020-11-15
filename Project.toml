@@ -16,7 +16,7 @@ Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 
 [compat]
 BusinessDays = "0.9"
-Distributions = "0.23"
+Distributions = "0.23, 0.24"
 ForwardDiff = "0.10"
 InterestRates = "0.4.3"
 OptimizingIR = "0.2"
