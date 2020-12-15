@@ -708,6 +708,7 @@ end
     scenario_fixed = FinancialDSL.Core.FixedScenario()
     scenario_fixed[FinancialDSL.Core.DiscountFactor(:PRE, Date(2019, 2, 1))] = 0.9
     @test FinancialDSL.Core.price(pricer, scenario_fixed) == 0.0
+    @test FinancialDSL.Core.get_horizon(swap) == Date(2019, 2, 1)
 end
 
 @testset "Repeated risk-factors" begin

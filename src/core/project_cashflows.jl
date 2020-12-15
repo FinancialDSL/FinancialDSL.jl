@@ -27,6 +27,10 @@ function get_horizon(c::FixedIncomeContract) :: Union{Missing, Date}
     end
 end
 
+function get_horizon(c::SwapContract) :: Union{Missing, Date}
+    return max(get_horizon(c.asset), get_horizon(c.liability))
+end
+
 function get_horizon(c::Union{Both, Either}) :: Union{Missing, Date}
     h1 = get_horizon(c.c1)
     h2 = get_horizon(c.c2)
