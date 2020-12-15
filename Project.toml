@@ -1,7 +1,7 @@
 name = "FinancialDSL"
 uuid = "0097028c-54fd-482a-a999-99411b279586"
 authors = ["Felipe Noronha Tavares <felipenoris@gmail.com>", "Lucas Duarte Processi <lucasprocessi@gmail.com>"]
-version = "0.3.2"
+version = "0.3.3"
 
 [deps]
 BusinessDays = "4f18b42c-503e-5345-9536-bb0f25fc7038"
