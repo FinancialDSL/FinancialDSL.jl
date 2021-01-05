@@ -95,8 +95,13 @@ end
 @inline function Base.getindex(scenario::ActualScenario, rf::DiscountFactor) :: Float64
     @assert scenario.date <= rf.maturity "Why get value a DiscountFactor value for a past date? Scenario date $(scenario.date); DiscountFactor maturity: $(rf.maturity)."
     sym = market_data_symbol(rf)
-    curve = MarketData.get_value(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym)) :: InterestRates.AbstractIRCurve
-    return InterestRates.discountfactor(curve, rf.maturity)
+    curve = MarketData.get_value(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym))
+
+    if ismissing(curve)
+        error("Error getting value for risk factor $rf: curve $sym is missing for date $(scenario.date).")
+    else
+        return InterestRates.discountfactor(curve, rf.maturity)
+    end
 end
 
 @inline function  Base.getindex(scenario::ActualScenario, rf::Stock) :: Currencies.Cash
