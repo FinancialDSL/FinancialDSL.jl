@@ -94,7 +94,13 @@ function lower!(ctx::CompilerContext{M}, c::WhenAt{U}, at::Date) :: OptimizingIR
 
     carry_type = ctx.attr["carry_type"]
 
-    if carry_type == "none" || (carry_type == "curve" && !has_carry_curve(ctx.attr, underlying) ) || unit.carryless
+    if (
+        carry_type == "none" # there's no carry curve
+        || (carry_type == "curve" && !has_carry_curve(ctx.attr, underlying) ) # there's a carry curve, but not for the current underlying
+        || unit.carryless # the unit contract was declared caryless
+        )
+
+        # caryless cashflows are discounted using only the riskfree curve
         discount_factor_process = lower!(ctx, riskfree_discount_factor, at)
 
     elseif carry_type == "curve"
