@@ -667,6 +667,29 @@ end
         push!(c, FinancialDSL.Core.Events.Amort(Date(2019, 2, 1), 2.0, BRL))
         @test FinancialDSL.Core.get_horizon(c) == Date(2019, 2, 1)
     end
+
+    @testset "expires_at_maturity" begin
+        c = FinancialDSL.Core.WhenAt(
+                Date(2020, 2, 1),
+                FinancialDSL.Core.Both(
+                        FinancialDSL.Core.WhenAt(Date(2021, 2, 1), FinancialDSL.Core.Amount(1.0USD)),
+                        FinancialDSL.Core.Give(FinancialDSL.Core.Amount(5.5BRL))
+                    )
+            )
+
+        @test FinancialDSL.Core.get_horizon(c) == Date(2021, 2, 1)
+
+        c = FinancialDSL.Core.WhenAt(
+                Date(2020, 2, 1),
+                FinancialDSL.Core.Both(
+                        FinancialDSL.Core.WhenAt(Date(2021, 2, 1), FinancialDSL.Core.Amount(1.0USD)),
+                        FinancialDSL.Core.Give(FinancialDSL.Core.Amount(5.5BRL))
+                    ),
+                expires_at_maturity=true
+            )
+
+        @test FinancialDSL.Core.get_horizon(c) == Date(2020, 2, 1)
+    end
 end
 
 @testset "FixedIncome" begin

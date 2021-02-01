@@ -47,7 +47,7 @@ function get_horizon(c::Union{Both, Either}) :: Union{Missing, Date}
     end
 end
 
-function get_horizon(c::WhenAt) :: Date
+function get_horizon(c::WhenAt) :: Union{Missing, Date}
     if c.expires_at_maturity
         return c.maturity
     else
