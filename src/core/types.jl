@@ -313,11 +313,26 @@ end
 =#
 
 """
-`WhenAt(mat::Date, c::Contract)` will acquire `c` at date `mat`.
+`WhenAt(mat::Date, c::Contract; expires_at_maturity::Bool=false)` will acquire `c` at date `mat`.
+
+Optional kwarg `expires_at_maturity` controls the behavior of `get_horizon(c)` for this contract:
+
+* if `expires_at_maturity = false` (default), `get_horizon(c)` will return the maximum horizon found
+in `c.maturity` and the result of `get_horizon(c.c)`.
+
+* if `expires_at_maturity = true`, `get_horizon(c)` will always return `c.maturity`.
+
+This is useful for Forward contracts, where the underlying is another fixed income contract,
+but the settlement of the Forward contract occurs using cash at `maturity`.
 """
 struct WhenAt{C<:Contract} <: Contract
     maturity::Date
     c::C
+    expires_at_maturity::Bool
+
+    function WhenAt(maturity::Date, c::C; expires_at_maturity::Bool=false) where {C<:Contract}
+        new{C}(maturity, c, expires_at_maturity)
+    end
 end
 
 """

@@ -48,11 +48,15 @@ function get_horizon(c::Union{Both, Either}) :: Union{Missing, Date}
 end
 
 function get_horizon(c::WhenAt) :: Date
-    inner_horizon = get_horizon(c.c)
-    if ismissing(inner_horizon)
+    if c.expires_at_maturity
         return c.maturity
     else
-        return max(c.maturity, inner_horizon)
+        inner_horizon = get_horizon(c.c)
+        if ismissing(inner_horizon)
+            return c.maturity
+        else
+            return max(c.maturity, inner_horizon)
+        end
     end
 end
 
