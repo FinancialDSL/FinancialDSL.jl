@@ -326,12 +326,12 @@ This is useful for Forward contracts, where the underlying is another fixed inco
 but the settlement of the Forward contract occurs using cash at `maturity`.
 """
 struct WhenAt{C<:Contract} <: Contract
+    expires_at_maturity::Bool
     maturity::Date
     c::C
-    expires_at_maturity::Bool
 
     function WhenAt(maturity::Date, c::C; expires_at_maturity::Bool=false) where {C<:Contract}
-        new{C}(maturity, c, expires_at_maturity)
+        new{C}(expires_at_maturity, maturity, c)
     end
 end
 
