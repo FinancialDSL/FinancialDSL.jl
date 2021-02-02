@@ -66,6 +66,7 @@ function has_carry_curve(attr::ContractAttributes, sc::SpotCurrency) :: Bool
     @assert haskey(attr, "carry_curves") "Contract has no `carry_curves` attribute."
     currency_name = string(Currencies.currency_symbol(sc))
     carry_curves = attr["carry_curves"]
+    @assert isa(carry_curves, Dict) # maps Currency -> Curve
 
     # returns true if there's a carry curve for the given currency, or to any currency
     return haskey(carry_curves, currency_name) || haskey(carry_curves, "Any")
