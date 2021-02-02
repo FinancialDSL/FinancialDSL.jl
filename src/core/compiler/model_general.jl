@@ -171,6 +171,13 @@ function lower!(ctx::CompilerContext, c::WhenAt{WhenAt{U}}, state) :: Optimizing
     return lower!(ctx, c.c, state)
 end
 
+# Postpone a payment makes no difference.
+# TODO: this could be a more general rule ( WhenAt{C} where C<:Contract )
+function lower!(ctx::CompilerContext, c::WhenAt{C}, state) :: OptimizingIR.ImmutableValue where {C<:AbstractFixedIncomeContract}
+    @assert c.maturity <= get_horizon(c.c)
+    return lower!(ctx, c.c, state)
+end
+
 #
 # FixedIncomeContract
 #

@@ -42,6 +42,7 @@ import ..ForwardDiff
 import ..riskfactors
 import ..FixedIncomeEvent
 import ..FixedIncomeContract
+import ..AbstractFixedIncomeContract
 import ..SwapContract
 import ..price
 import ..exposures
