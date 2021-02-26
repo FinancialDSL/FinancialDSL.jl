@@ -79,7 +79,14 @@ function lower!(ctx::CompilerContext, o::HistoricalValue, state) :: OptimizingIR
     assert_at_initial_state(ctx, state)
     provider = get_market_data_provider(ctx)
     pricing_date = get_pricing_date(ctx)
-    val = MarketData.get_value(provider, Symbol(o.serie_name), pricing_date, pricing_date; locf=o.locf)::Float64
+
+    serie_sym = Symbol(o.serie_name)
+    at = pricing_date
+    asof = pricing_date
+    val = MarketData.get_value(provider, serie_sym, at, asof; locf=o.locf)
+    if ismissing(val)
+        error("Value for $(o.serie_name) at $at asof $asof is missing")
+    end
     return lower!(ctx, Konst(val), pricing_date)
 end
 

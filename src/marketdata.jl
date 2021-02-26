@@ -32,7 +32,7 @@ using Dates
 abstract type AbstractMarketDataProvider end
 
 """
-    get_value(provider, serie_id, at; locf::Bool=false) :: Union{Missing, T}
+    get_value(provider, serie_id, at, asof::Date; locf::Bool=false) :: Union{Missing, T}
 
 Returns a value for `serie_id` at state (or date) `at`.
 
