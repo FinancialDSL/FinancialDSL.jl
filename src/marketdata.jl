@@ -25,7 +25,7 @@ using Dates
 
 * `MarketData.has_value(provider, serie_id, at, asof::Date; locf::Bool=false) :: Bool`
 
-* `MarketData.get_cash(provider, serie_id, at, asof::Date; locf::Bool=false) :: Currencies.Cash`
+* `MarketData.get_cash(provider, serie_id, at, asof::Date; locf::Bool=false) :: Union{Missing, Currencies.Cash}`
 
 * `MarketData.assert_has_serie(provider, serie_id)`
 """
@@ -59,14 +59,19 @@ function get_serie_currency end
 function has_serie end
 has_value(provider::AbstractMarketDataProvider, serie_id, at, asof::Date; locf::Bool=false) = !ismissing(get_value(provider, serie_id, at, asof; locf=locf))
 
-function get_cash(provider::AbstractMarketDataProvider, serie_id, at, asof::Date; locf::Bool=false) :: Currencies.Cash
+function get_cash(provider::AbstractMarketDataProvider, serie_id, at, asof::Date; locf::Bool=false) :: Union{Missing, Currencies.Cash}
 
     currency = get_serie_currency(provider, serie_id)
     if currency == nothing
         error("Serie $serie_id has no currency")
     end
 
-    return get_value(provider, serie_id, at, asof; locf=locf) * currency
+    serie_value = get_value(provider, serie_id, at, asof; locf=locf)
+    if ismissing(serie_value)
+        return missing
+    else
+        return serie_value * currency
+    end
 end
 
 """
