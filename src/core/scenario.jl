@@ -89,7 +89,22 @@ end
 
 @inline function Base.getindex(scenario::ActualScenario, rf::SpotCurrency{C}) :: Currencies.Cash where {C<:Currencies.Currency}
     sym = market_data_symbol(rf)
-    return MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym))
+    result = MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym))
+    if ismissing(result)
+        error("Error getting value for risk factor $rf: value is missing for date $(scenario.date)")
+    else
+        return result
+    end
+end
+
+@inline function  Base.getindex(scenario::ActualScenario, rf::Stock) :: Currencies.Cash
+    sym = market_data_symbol(rf)
+    result = MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym))
+    if ismissing(result)
+        error("Error getting value for risk factor $rf: value is missing for date $(scenario.date)")
+    else
+        return result
+    end
 end
 
 @inline function Base.getindex(scenario::ActualScenario, rf::DiscountFactor) :: Float64
@@ -102,11 +117,6 @@ end
     else
         return InterestRates.discountfactor(curve, rf.maturity)
     end
-end
-
-@inline function  Base.getindex(scenario::ActualScenario, rf::Stock) :: Currencies.Cash
-    sym = market_data_symbol(rf)
-    return MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym))
 end
 
 #
