@@ -85,5 +85,3 @@ function get_carry_curve_symbol(attr::ContractAttributes, sc::SpotCurrency) :: S
         return Symbol(carry_curves["Any"])
     end
 end
-
-get_settlement_currency(a::ContractAttributes) :: Currencies.Currency = Currencies.Currency(a["settlement_currency"])
