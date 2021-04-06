@@ -20,7 +20,7 @@ function is_riskfree_discountfactor(model::StaticHedgingModel, kind::String, rf:
     riskfree_curve_map = model.riskfree_curve_map[kind]
     sym = market_data_symbol(rf)
 
-    for (currency_sym, curve_sym) in riskfree_curve_map
+    for curve_sym in values(riskfree_curve_map)
         if curve_sym == sym
             return true
         end
