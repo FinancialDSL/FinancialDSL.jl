@@ -4,12 +4,18 @@
 
 Represents a Pricing Model for a `Contract`.
 
+# Requires
+
+* `is_riskfree_discountfactor(model::PricingModel, kind::String, rf::DiscountFactor) :: Bool`
+
 # Provides
 
 * `get_functional_currency(model) :: Currencies.Currency`
 
 """
 abstract type PricingModel{C<:Currencies.Currency} end
+
+function is_riskfree_discountfactor end
 
 @inline function get_functional_currency(m::PricingModel{C}) :: C where {C<:Currencies.Currency}
     return C()

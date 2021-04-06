@@ -54,6 +54,7 @@ import ..FixedCashRiskFactor
 import ..FixedNonCashRiskFactor
 import ..exch
 import ..risk_factor_symbol
+import ..market_data_symbol
 import ..get_functional_currency
 import ..eachcashflow
 import ..event_symbol
@@ -67,6 +68,7 @@ import ..SecondOrderRiskFactor
 import ..DeltaNormalExposuresMethod
 import ..DeltaGammaApproxExposuresMethod
 import ..EuropeanOption
+import ..is_riskfree_discountfactor
 
 include("types.jl")
 include("opcodes.jl")

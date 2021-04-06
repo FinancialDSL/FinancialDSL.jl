@@ -8,11 +8,25 @@ function initial_state(ctx::CompilerContext{M}) where {M<:StaticHedgingModel}
 end
 
 function get_riskfree_curve_symbol(m::StaticHedgingModel, kind::String, rf::CashRiskFactor) :: Symbol
-    @assert haskey(m.riskfree_curve_map, kind) "Pricing Model doesn't know about a carry curve of type $kind. These are the available types of carry curves: $(collect(keys(m.riskfree_curve_map)))."
+    @assert haskey(m.riskfree_curve_map, kind) "Pricing Model doesn't know about a riskfree curve of type $kind. These are the available types of riskfree curves: $(collect(keys(m.riskfree_curve_map)))."
     riskfree_curve_map = m.riskfree_curve_map[kind]
     sym = risk_factor_symbol(rf)
     @assert haskey(riskfree_curve_map, sym) "Risk factor $sym not available in this pricing model. These are the available items: $(collect(keys(riskfree_curve_map)))."
     return riskfree_curve_map[sym]
+end
+
+function is_riskfree_discountfactor(model::StaticHedgingModel, kind::String, rf::DiscountFactor) :: Bool
+    @assert haskey(model.riskfree_curve_map, kind) "Pricing Model doesn't know about a riskfree curve of type $kind. These are the available types of riskfree curves: $(collect(keys(model.riskfree_curve_map)))."
+    riskfree_curve_map = model.riskfree_curve_map[kind]
+    sym = market_data_symbol(rf)
+
+    for (currency_sym, curve_sym) in riskfree_curve_map
+        if curve_sym == sym
+            return true
+        end
+    end
+
+    return false
 end
 
 # in StaticHedging, all risk factors are observed at the pricing_date

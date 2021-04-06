@@ -215,6 +215,10 @@ end
     static_model = FinancialDSL.Core.StaticHedgingModel(BRL, currency_to_curves_map)
     empty_provider = FinancialDSL.MarketData.EmptyMarketDataProvider()
 
+    @test FinancialDSL.Core.is_riskfree_discountfactor(static_model, "onshore", FinancialDSL.Core.DiscountFactor(:PRE, Date(2019, 1, 2)))
+    @test !FinancialDSL.Core.is_riskfree_discountfactor(static_model, "onshore", FinancialDSL.Core.DiscountFactor(:OTHER_CURVE, Date(2019, 1, 2)))
+    @test_throws AssertionError FinancialDSL.Core.is_riskfree_discountfactor(static_model, "offshore", FinancialDSL.Core.DiscountFactor(:PRE, Date(2019, 1, 2)))
+
     o = FinancialDSL.Core.Konst(10.2)
     lo = FinancialDSL.Core.LiftObs(string, o)
     @test typeof(lo) == FinancialDSL.Core.LiftObs{typeof(string), String}
