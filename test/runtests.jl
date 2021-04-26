@@ -3,6 +3,8 @@ import FinancialDSL
 using Test, Dates
 import InterestRates, BusinessDays
 
+ts_start = Dates.now()
+
 @testset "BS" begin
     include("test_BS.jl")
 end
@@ -20,3 +22,5 @@ end
 @testset "Core" begin
     include("test_core.jl")
 end
+
+@info("Tests completed in $(Dates.now() - ts_start)")
