@@ -18,7 +18,7 @@ function CompilerContext(
             input_riskfactors_variable,
             OptimizingIR.LookupTable{RiskFactor}(),
             target_pricer_type,
-            Dict{OptimizingIR.ImmutableVariable, CashflowType}()
+            target_pricer_type <: AbstractCashflowPricer ? Dict{OptimizingIR.ImmutableVariable, CashflowType}() : nothing
         )
 
     # creates the pricing function argument for the vector of risk factor values
@@ -92,6 +92,7 @@ end
     price_output_index = OptimizingIR.indexof(ctx.program.outputs, OptimizingIR.ImmutableVariable(:price))
 
     # identifies indexes for the return values with each cashflow pricing result
+    @assert ctx.output_var_to_cashflowtype != nothing
     output_index_to_cashflow_type = Dict{Int, CashflowType}()
     for (output_variable, cftype) in ctx.output_var_to_cashflowtype
         output_index_to_cashflow_type[OptimizingIR.indexof(ctx.program.outputs, output_variable)] = cftype

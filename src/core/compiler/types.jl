@@ -39,7 +39,7 @@ struct CompilerContext{M<:PricingModel, D<:MarketData.AbstractMarketDataProvider
     input_riskfactors_variable::OptimizingIR.ImmutableVariable # identifies the index of the argument for the pricing function which is a Vector of Risk Factor values
     input_riskfactors::OptimizingIR.LookupTable{RiskFactor}    # identifies the risk factor for each index of input_riskfactors_variable
     target_pricer_type::Type{P}
-    output_var_to_cashflowtype::Dict{OptimizingIR.ImmutableVariable, CashflowType}
+    output_var_to_cashflowtype::Union{Nothing, Dict{OptimizingIR.ImmutableVariable, CashflowType}}
 end
 
 get_market_data_provider(ctx::CompilerContext) = ctx.provider
