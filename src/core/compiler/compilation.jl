@@ -60,51 +60,75 @@ function compile(
         contract::Contract,
         target_pricer_type::Type{T}
         ;
-        compiler::Symbol=:interpreter) :: AbstractPricer where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
+        compiler::Symbol=:interpreter) where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
+
+    compiler_result = compile_pricing_function(model, provider, attributes, pricing_date, contract, target_pricer_type, compiler=compiler)
+    f = OptimizingIR.compile(decode_compiler_type(compiler), compiler_result.program)
+
+    if target_pricer_type <: AbstractCashflowPricer
+        @assert length(compiler_result.program.outputs) >= 1 "pricing function should have at least one output."
+
+        return CashflowPricer(
+            f,
+            compiler_result.input_riskfactors,
+            compiler_result.currency,
+            compiler_result.price_output_index,
+            compiler_result.output_index_to_cashflow_type
+        )
+    else
+        @assert length(compiler_result.program.outputs) == 1 "pricing function should have exactly one output"
+
+        return Pricer(
+                f,
+                compiler_result.input_riskfactors,
+                compiler_result.currency
+            )
+    end
+end
+
+function compile_pricing_function(
+        model::PricingModel,
+        provider::MarketData.AbstractMarketDataProvider,
+        attributes::ContractAttributes,
+        pricing_date::Date,
+        contract::Contract,
+        target_pricer_type::Type{T}
+        ;
+        compiler::Symbol=:interpreter) where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
 
     ctx = CompilerContext(model, provider, attributes, pricing_date, OptimizingIR.ImmutableVariable(:risk_factors_values), target_pricer_type)
-
     price_value = lower!(ctx, contract)
     bind_output!(ctx, :price, price_value)
-    f = OptimizingIR.compile(decode_compiler_type(compiler), ctx.program)
 
-    return new_pricer(ctx, f)
+    return CompilerResult(ctx)
 end
 
-# an AbstractPricer has a single return value with the price of the contract
-@inline function new_pricer(ctx::CompilerContext{P, M, IR, AbstractPricer}, f) where {P,M,IR}
-
-    @assert length(ctx.program.outputs) == 1 "pricing function should have exactly one output"
-
-    return Pricer(
-            f,
-            ctx.input_riskfactors,
-            get_functional_currency(ctx.model)
-        )
-end
-
-# an AbstractCashflowPricer has a return value for each cashflow
-@inline function new_pricer(ctx::CompilerContext{P,M,IR,AbstractCashflowPricer}, f) where {P,M,IR}
-
-    @assert length(ctx.program.outputs) >= 1 "pricing function should have at least one output."
-
+function CompilerResult(ctx::CompilerContext)
     # identifies the index of the return value with the pricing result for the contract
     price_output_index = OptimizingIR.indexof(ctx.program.outputs, OptimizingIR.ImmutableVariable(:price))
 
-    # identifies indexes for the return values with each cashflow pricing result
-    @assert ctx.output_var_to_cashflowtype != nothing
-    output_index_to_cashflow_type = Dict{Int, CashflowType}()
-    for (output_variable, cftype) in ctx.output_var_to_cashflowtype
-        output_index_to_cashflow_type[OptimizingIR.indexof(ctx.program.outputs, output_variable)] = cftype
+    local output_index_to_cashflow_type
+
+    if ctx.target_pricer_type <: AbstractCashflowPricer
+        # an AbstractCashflowPricer has a return value for each cashflow
+        @assert ctx.output_var_to_cashflowtype != nothing
+        output_index_to_cashflow_type = Dict{Int, CashflowType}()
+        for (output_variable, cftype) in ctx.output_var_to_cashflowtype
+            output_index_to_cashflow_type[OptimizingIR.indexof(ctx.program.outputs, output_variable)] = cftype
+        end
+
+        # outputs: pricing result + one result for each cashflow
+        @assert length(output_index_to_cashflow_type) + 1 == length(ctx.program.outputs) "Some output value was not considered in the pricing routine."
+    else
+        # an AbstractPricer has a single return value with the price of the contract
+        output_index_to_cashflow_type = nothing
     end
 
-    # outputs: pricing result + one result for each cashflow
-    @assert length(output_index_to_cashflow_type) + 1 == length(ctx.program.outputs) "Some output value was not considered in the pricing routine."
-
-    return CashflowPricer(
-            f,
+    return CompilerResult(
+            ctx.program,
             ctx.input_riskfactors,
             get_functional_currency(ctx.model),
+            ctx.target_pricer_type,
             price_output_index,
             output_index_to_cashflow_type
         )

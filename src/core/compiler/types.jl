@@ -42,6 +42,15 @@ struct CompilerContext{M<:PricingModel, D<:MarketData.AbstractMarketDataProvider
     output_var_to_cashflowtype::Union{Nothing, Dict{OptimizingIR.ImmutableVariable, CashflowType}}
 end
 
+struct CompilerResult{IR<:OptimizingIR.Program, P<:Union{AbstractPricer, AbstractCashflowPricer}}
+    program::IR
+    input_riskfactors::OptimizingIR.LookupTable{RiskFactor}
+    currency::Currencies.Currency
+    target_pricer_type::Type{P}
+    price_output_index::Int # In the resulting tuple from the pricing function, identifies the index of the pricing information
+    output_index_to_cashflow_type::Union{Nothing, Dict{Int, CashflowType}} # Key: index in the resulting tuple from the pricing function for the cashflow
+end
+
 get_market_data_provider(ctx::CompilerContext) = ctx.provider
 get_pricing_model(ctx::CompilerContext) = ctx.model
 get_pricing_date(ctx::CompilerContext) = ctx.pricing_date
