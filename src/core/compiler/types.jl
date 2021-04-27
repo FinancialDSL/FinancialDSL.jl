@@ -42,41 +42,6 @@ struct CompilerContext{M<:PricingModel, D<:MarketData.AbstractMarketDataProvider
     output_var_to_cashflowtype::Dict{OptimizingIR.ImmutableVariable, CashflowType}
 end
 
-function CompilerContext(model::PricingModel, provider::MarketData.AbstractMarketDataProvider, attr::ContractAttributes, pricing_date::Date, input_riskfactors_variable::OptimizingIR.ImmutableVariable, target_pricer_type::DataType) :: CompilerContext
-    ctx = CompilerContext(
-            model,
-            provider,
-            attr,
-            pricing_date,
-            OptimizingIR.BasicBlock(),
-            ObservablesBuffer(),
-            input_riskfactors_variable,
-            OptimizingIR.LookupTable{RiskFactor}(),
-            target_pricer_type,
-            Dict{OptimizingIR.ImmutableVariable, CashflowType}()
-        )
-
-    # creates the pricing function argument for the vector of risk factor values
-    OptimizingIR.addinput!(ctx.program, ctx.input_riskfactors_variable)
-
-    return ctx
-end
-
-function clone_context_with_model(ctx::CompilerContext, new_model::PricingModel)
-    return CompilerContext(
-            new_model,
-            ctx.provider,
-            ctx.attr,
-            ctx.pricing_date,
-            ctx.program,
-            ctx.observables_buffer,
-            ctx.input_riskfactors_variable,
-            ctx.input_riskfactors,
-            ctx.target_pricer_type,
-            ctx.output_var_to_cashflowtype
-        )
-end
-
 get_market_data_provider(ctx::CompilerContext) = ctx.provider
 get_pricing_model(ctx::CompilerContext) = ctx.model
 get_pricing_date(ctx::CompilerContext) = ctx.pricing_date

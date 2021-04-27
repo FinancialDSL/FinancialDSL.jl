@@ -4,13 +4,11 @@
 # so that ForwardDiff can do its thing
 # Regarding `invokelatest`, see https://felipenoris.github.io/OptimizingIR.jl/dev/#World-Age-Problem-1
 function price_closure(program::Pricer) :: Function
-
     if isa(program.pricing_function, Function)
         x -> Base.invokelatest(program.pricing_function, x)
     else
         x -> program.pricing_function(x)
     end
-
 end
 
 # Regarding `invokelatest`, see https://felipenoris.github.io/OptimizingIR.jl/dev/#World-Age-Problem-1
