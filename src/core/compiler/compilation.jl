@@ -52,7 +52,7 @@ end
     end
 end
 
-function compile(
+function compile_pricer(
         model::PricingModel,
         provider::MarketData.AbstractMarketDataProvider,
         attributes::ContractAttributes,
@@ -62,10 +62,14 @@ function compile(
         ;
         compiler::Symbol=:interpreter) where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
 
-    compiler_result = compile_pricing_function(model, provider, attributes, pricing_date, contract, target_pricer_type, compiler=compiler)
+    compiler_result = compile_pricing_function(model, provider, attributes, pricing_date, contract, target_pricer_type)
+    return compile_pricer(compiler_result, compiler=compiler)
+end
+
+function compile_pricer(compiler_result::CompilerResult; compiler::Symbol=:interpreter)
     f = OptimizingIR.compile(decode_compiler_type(compiler), compiler_result.program)
 
-    if target_pricer_type <: AbstractCashflowPricer
+    if compiler_result.target_pricer_type <: AbstractCashflowPricer
         @assert length(compiler_result.program.outputs) >= 1 "pricing function should have at least one output."
 
         return CashflowPricer(
@@ -87,14 +91,13 @@ function compile(
 end
 
 function compile_pricing_function(
-        model::PricingModel,
-        provider::MarketData.AbstractMarketDataProvider,
-        attributes::ContractAttributes,
-        pricing_date::Date,
-        contract::Contract,
-        target_pricer_type::Type{T}
-        ;
-        compiler::Symbol=:interpreter) where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
+            model::PricingModel,
+            provider::MarketData.AbstractMarketDataProvider,
+            attributes::ContractAttributes,
+            pricing_date::Date,
+            contract::Contract,
+            target_pricer_type::Type{T}
+        ) where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
 
     ctx = CompilerContext(model, provider, attributes, pricing_date, OptimizingIR.ImmutableVariable(:risk_factors_values), target_pricer_type)
     price_value = lower!(ctx, contract)
