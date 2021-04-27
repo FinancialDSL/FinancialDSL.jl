@@ -30,7 +30,7 @@
     end
 end
 
-@testset "dag" begin
+@testset "compile" begin
 
     pricing_date = Date(2018, 5, 29)
     currency_to_curves_map = Dict( "onshore" => Dict( :BRL => :PRE, :USD => :cpUSD ))
@@ -68,6 +68,63 @@ end
         @test p ≈ 10.0 * 3.0 * 0.8
 
         ex = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario)
+        @test ex[FinancialDSL.Core.SpotCurrency(USD)] ≈ 10.0 * 3.0 * 0.8
+        @test ex[FinancialDSL.Core.DiscountFactor(:cpUSD, Date(2019, 2, 1))] ≈ 10.0 * 3.0 * 0.8
+    end
+
+    let
+        contract = FinancialDSL.Core.WhenAt(Date(2019, 2, 1), FinancialDSL.Core.Amount(10.0, USD))
+        program = FinancialDSL.Core.compile_pricing_program(empty_provider, pricing_date, static_model, contract, attr)
+
+        mem_buff = Vector{Any}(undef, 1_000_000)
+        input_values_buff = Vector{Any}(undef, 10_000)
+
+        pricer = FinancialDSL.Core.create_pricer(program, memory_buffer=mem_buff, input_values_buffer=input_values_buff)
+        p = FinancialDSL.Core.price(pricer, scenario)
+        @test p ≈ 10.0 * 3.0 * 0.8
+
+        @test length(mem_buff) == 1_000_000
+        @test length(input_values_buff) == 10_000
+
+        ex = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario)
+        @test ex[FinancialDSL.Core.SpotCurrency(USD)] ≈ 10.0 * 3.0 * 0.8
+        @test ex[FinancialDSL.Core.DiscountFactor(:cpUSD, Date(2019, 2, 1))] ≈ 10.0 * 3.0 * 0.8
+
+        native_pricer = FinancialDSL.Core.create_pricer(program, compiler=:native)
+        p = FinancialDSL.Core.price(native_pricer, scenario)
+        @test p ≈ 10.0 * 3.0 * 0.8
+
+        ex = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), native_pricer, scenario)
+        @test ex[FinancialDSL.Core.SpotCurrency(USD)] ≈ 10.0 * 3.0 * 0.8
+        @test ex[FinancialDSL.Core.DiscountFactor(:cpUSD, Date(2019, 2, 1))] ≈ 10.0 * 3.0 * 0.8
+    end
+
+    let
+        contract = FinancialDSL.Core.WhenAt(Date(2019, 2, 1), FinancialDSL.Core.Amount(10.0, USD))
+        program = FinancialDSL.Core.compile_pricing_program(empty_provider, pricing_date, static_model, contract, attr)
+
+        mem_buff = Vector{Any}(undef, 1)
+        input_values_buff = Vector{Any}()
+
+        @test length(mem_buff) != FinancialDSL.OptimizingIR.required_memory_size(program.program)
+        @test length(input_values_buff) != FinancialDSL.OptimizingIR.required_input_values_size(program.program)
+
+        pricer = FinancialDSL.Core.create_pricer(program, memory_buffer=mem_buff, input_values_buffer=input_values_buff)
+        p = FinancialDSL.Core.price(pricer, scenario)
+        @test p ≈ 10.0 * 3.0 * 0.8
+
+        @test length(mem_buff) == FinancialDSL.OptimizingIR.required_memory_size(program.program)
+        @test length(input_values_buff) == FinancialDSL.OptimizingIR.required_input_values_size(program.program)
+
+        ex = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), pricer, scenario)
+        @test ex[FinancialDSL.Core.SpotCurrency(USD)] ≈ 10.0 * 3.0 * 0.8
+        @test ex[FinancialDSL.Core.DiscountFactor(:cpUSD, Date(2019, 2, 1))] ≈ 10.0 * 3.0 * 0.8
+
+        native_pricer = FinancialDSL.Core.create_pricer(program, compiler=:native)
+        p = FinancialDSL.Core.price(native_pricer, scenario)
+        @test p ≈ 10.0 * 3.0 * 0.8
+
+        ex = FinancialDSL.Core.exposures(FinancialDSL.Core.DeltaNormalExposuresMethod(), native_pricer, scenario)
         @test ex[FinancialDSL.Core.SpotCurrency(USD)] ≈ 10.0 * 3.0 * 0.8
         @test ex[FinancialDSL.Core.DiscountFactor(:cpUSD, Date(2019, 2, 1))] ≈ 10.0 * 3.0 * 0.8
     end

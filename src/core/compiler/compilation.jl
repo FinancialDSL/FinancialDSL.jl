@@ -42,16 +42,6 @@ function clone_context_with_model(ctx::CompilerContext, new_model::PricingModel)
         )
 end
 
-@inline function decode_compiler_type(compiler::Symbol)
-    if compiler == :interpreter
-        return OptimizingIR.BasicBlockInterpreter
-    elseif compiler == :native
-        return OptimizingIR.Native
-    else
-        error("Invalid compiler option: $compiler")
-    end
-end
-
 function compile_pricer(
         model::PricingModel,
         provider::MarketData.AbstractMarketDataProvider,
@@ -62,35 +52,78 @@ function compile_pricer(
         ;
         compiler::Symbol=:interpreter) where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
 
-    compiler_result = compile_pricing_function(model, provider, attributes, pricing_date, contract, target_pricer_type)
-    return compile_pricer(compiler_result, compiler=compiler)
+    compiler_result = compile_pricing_program(model, provider, attributes, pricing_date, contract, target_pricer_type)
+    return create_pricer(compiler_result, compiler=compiler)
 end
 
-function compile_pricer(compiler_result::CompilerResult; compiler::Symbol=:interpreter)
-    f = OptimizingIR.compile(decode_compiler_type(compiler), compiler_result.program)
-
-    if compiler_result.target_pricer_type <: AbstractCashflowPricer
-        @assert length(compiler_result.program.outputs) >= 1 "pricing function should have at least one output."
-
-        return CashflowPricer(
-            f,
-            compiler_result.input_riskfactors,
-            compiler_result.currency,
-            compiler_result.price_output_index,
-            compiler_result.output_index_to_cashflow_type
+function _compile_pricing_function(
+            program::OptimizingIR.CompiledBasicBlock,
+            compiler::Symbol;
+            memory_buffer::Union{Nothing, Vector{Any}}=nothing,
+            input_values_buffer::Union{Nothing, Vector{Any}}=nothing,
+            auto_resize_buffers::Bool=true
         )
-    else
-        @assert length(compiler_result.program.outputs) == 1 "pricing function should have exactly one output"
 
-        return Pricer(
-                f,
-                compiler_result.input_riskfactors,
-                compiler_result.currency
-            )
+    if compiler == :interpreter
+
+        if memory_buffer == nothing
+            memory_buffer = Vector{Any}()
+        end
+
+        if input_values_buffer == nothing
+            input_values_buffer = Vector{Any}()
+        end
+
+        return OptimizingIR.BasicBlockInterpreter(program, memory_buffer, input_values_buffer, auto_resize_buffers=auto_resize_buffers)
+
+    elseif compiler == :native
+        return OptimizingIR.compile(OptimizingIR.Native, program)
+    else
+        error("Unknown compiler type: $compiler")
     end
 end
 
-function compile_pricing_function(
+function create_pricer(
+            compiler_result::CompilerResult{OptimizingIR.CompiledBasicBlock, P};
+            compiler::Symbol=:interpreter,
+            memory_buffer::Union{Nothing, Vector{Any}}=nothing,
+            input_values_buffer::Union{Nothing, Vector{Any}}=nothing,
+            auto_resize_buffers::Bool=true
+        ) where {P<:AbstractPricer}
+
+    f = _compile_pricing_function(compiler_result.program, compiler, memory_buffer=memory_buffer, input_values_buffer=input_values_buffer, auto_resize_buffers=auto_resize_buffers)
+
+    @assert length(compiler_result.program.outputs) == 1 "pricing function should have exactly one output"
+
+    return Pricer(
+            f,
+            compiler_result.input_riskfactors,
+            compiler_result.currency
+        )
+end
+
+function create_pricer(
+            compiler_result::CompilerResult{OptimizingIR.CompiledBasicBlock, P};
+            compiler::Symbol=:interpreter,
+            memory_buffer::Union{Nothing, Vector{Any}}=nothing,
+            input_values_buffer::Union{Nothing, Vector{Any}}=nothing,
+            auto_resize_buffers::Bool=true
+        ) where {P<:AbstractCashflowPricer}
+
+    f = _compile_pricing_function(compiler_result.program, compiler, memory_buffer=memory_buffer, input_values_buffer=input_values_buffer, auto_resize_buffers=auto_resize_buffers)
+
+    @assert length(compiler_result.program.outputs) >= 1 "pricing function should have at least one output."
+
+    return CashflowPricer(
+        f,
+        compiler_result.input_riskfactors,
+        compiler_result.currency,
+        compiler_result.price_output_index,
+        compiler_result.output_index_to_cashflow_type
+    )
+end
+
+function compile_pricing_program(
             model::PricingModel,
             provider::MarketData.AbstractMarketDataProvider,
             attributes::ContractAttributes,
@@ -106,29 +139,39 @@ function compile_pricing_function(
     return CompilerResult(ctx)
 end
 
-function CompilerResult(ctx::CompilerContext)
+function CompilerResult(ctx::CompilerContext{M, D, IR, P}) where {M, D, IR<:OptimizingIR.BasicBlock, P<:AbstractPricer}
     # identifies the index of the return value with the pricing result for the contract
     price_output_index = OptimizingIR.indexof(ctx.program.outputs, OptimizingIR.ImmutableVariable(:price))
 
-    local output_index_to_cashflow_type
-
-    if ctx.target_pricer_type <: AbstractCashflowPricer
-        # an AbstractCashflowPricer has a return value for each cashflow
-        @assert ctx.output_var_to_cashflowtype != nothing
-        output_index_to_cashflow_type = Dict{Int, CashflowType}()
-        for (output_variable, cftype) in ctx.output_var_to_cashflowtype
-            output_index_to_cashflow_type[OptimizingIR.indexof(ctx.program.outputs, output_variable)] = cftype
-        end
-
-        # outputs: pricing result + one result for each cashflow
-        @assert length(output_index_to_cashflow_type) + 1 == length(ctx.program.outputs) "Some output value was not considered in the pricing routine."
-    else
-        # an AbstractPricer has a single return value with the price of the contract
-        output_index_to_cashflow_type = nothing
-    end
+    # an AbstractPricer has a single return value with the price of the contract
+    output_index_to_cashflow_type = nothing
 
     return CompilerResult(
-            ctx.program,
+            OptimizingIR.CompiledBasicBlock(ctx.program),
+            ctx.input_riskfactors,
+            get_functional_currency(ctx.model),
+            ctx.target_pricer_type,
+            price_output_index,
+            output_index_to_cashflow_type
+        )
+end
+
+function CompilerResult(ctx::CompilerContext{M, D, IR, P}) where {M, D, IR<:OptimizingIR.BasicBlock, P<:AbstractCashflowPricer}
+    # identifies the index of the return value with the pricing result for the contract
+    price_output_index = OptimizingIR.indexof(ctx.program.outputs, OptimizingIR.ImmutableVariable(:price))
+
+    # an AbstractCashflowPricer has a return value for each cashflow
+    @assert ctx.output_var_to_cashflowtype != nothing
+    output_index_to_cashflow_type = Dict{Int, CashflowType}()
+    for (output_variable, cftype) in ctx.output_var_to_cashflowtype
+        output_index_to_cashflow_type[OptimizingIR.indexof(ctx.program.outputs, output_variable)] = cftype
+    end
+
+    # outputs: pricing result + one result for each cashflow
+    @assert length(output_index_to_cashflow_type) + 1 == length(ctx.program.outputs) "Some output value was not considered in the pricing routine."
+
+    return CompilerResult(
+            OptimizingIR.CompiledBasicBlock(ctx.program),
             ctx.input_riskfactors,
             get_functional_currency(ctx.model),
             ctx.target_pricer_type,
