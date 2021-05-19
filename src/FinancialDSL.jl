@@ -10,7 +10,10 @@ import Distributions
 import Roots
 
 const CAL_BRL = BusinessDays.Brazil()
-BusinessDays.initcache(CAL_BRL)
+
+function __init__()
+    BusinessDays.initcache(CAL_BRL)
+end
 
 include("BS.jl")
 include("currencies/currencies.jl")
