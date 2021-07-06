@@ -5,6 +5,7 @@
 
 Base.show(io::IO, c::Contract) = _show_tree(io, c)
 Base.show(io::IO, o::Observable) = _show_tree(io, o)
+Base.show(io::IO, o::BufferedObservable) = print(io, "BufferedObservable(#$(repr(UInt64(pointer_from_objref(o)))))")
 
 function Base.show(io::IO, sc::SpotCurrency; color::Bool=true)
     if color
