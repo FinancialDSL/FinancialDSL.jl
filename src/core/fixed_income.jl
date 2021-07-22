@@ -8,7 +8,9 @@ end
 
 Returns the event name for `evn`.
 """
-event_symbol(evn::FixedIncomeEvent{E}) where {E} = E::Symbol
+function event_symbol(evn::FixedIncomeEvent{E}) :: Symbol where {E}
+    return E
+end
 
 FixedIncomeContract() = FixedIncomeContract(Vector{FixedIncomeEvent}())
 
