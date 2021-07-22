@@ -285,6 +285,9 @@ struct Scale <: Contract
     c::Contract
 end
 
+# avoids Scale(s, scale) chain
+Scale(s::Observable, c::Scale) = Scale(s * c.s, c.c)
+
 """
 Acquiring `Both(c1, c2)` implies in acquiring immediately both contracts `c1` and `c2`.
 """
@@ -381,13 +384,19 @@ The event name can be queried by `event_symbol` function.
 evn = FixedIncomeEvent(:EVENT_NAME, Date(2019, 2, 1), 1.0, BRL)
 ```
 """
-struct FixedIncomeEvent{E} <: AbstractFixedIncomeContract
-    c::WhenAt
+struct FixedIncomeEvent{E,C<:Union{Scale, Unit}} <: AbstractFixedIncomeContract
+    c::WhenAt{C}
 
-    function FixedIncomeEvent(evn::Symbol, contract::WhenAt)
-        @assert contract.maturity == get_horizon(contract) "contract maturity ($(contract.maturity)) should be equal to its horizon ($(get_horizon(contract)))."
+    function FixedIncomeEvent(evn::Symbol, contract::WhenAt{C}) where {C<:Unit}
         @assert Events.is_valid(evn) "$evn is not a valid event."
-        return new{evn}(contract)
+        return new{evn, C}(contract)
+    end
+
+    function FixedIncomeEvent(evn::Symbol, contract::WhenAt{C}) where {C<:Scale}
+        @assert contract.maturity == get_horizon(contract) "contract maturity ($(contract.maturity)) should be equal to its horizon ($(get_horizon(contract)))."
+        scale = contract.c
+        @assert isa(scale.c, Unit) "FixedIncomeEvent WhenAt(scale) should have a Unit as underlying. Got type$(typeof(scale.c)): $(scale.c)."
+        return new{evn, C}(contract)
     end
 end
 
