@@ -72,6 +72,13 @@ function has_carry_curve(attr::ContractAttributes, sc::SpotCurrency) :: Bool
     return haskey(carry_curves, currency_name) || haskey(carry_curves, "Any")
 end
 
+function get_carry_type(attr::ContractAttributes) :: String
+    @assert haskey(attr, "carry_type") "Contract attribute `carry_type` is missing"
+    carry_type = attr["carry_type"]
+    @assert isa(carry_type, String) "Contract attribute `carry_type` must be a `String`."
+    return carry_type
+end
+
 function get_carry_curve_symbol(attr::ContractAttributes, sc::SpotCurrency) :: Symbol
     @assert haskey(attr, "carry_curves") "Contract has no `carry_curves` attribute."
     carry_curves = attr["carry_curves"]

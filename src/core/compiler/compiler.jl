@@ -30,6 +30,7 @@ import ..Both
 import ..Either
 import ..Unit
 import ..Contract
+import ..get_carry_type
 import ..has_carry_curve
 import ..get_carry_curve_symbol
 import ..Currencies
