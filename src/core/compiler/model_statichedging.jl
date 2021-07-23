@@ -104,7 +104,7 @@ function lower!(ctx::CompilerContext{M}, c::WhenAt{U}, at::Date) :: OptimizingIR
     end
 
     riskfree_discount_factor = DiscountFactor(get_riskfree_curve_symbol(ctx.model, ctx.attr["riskfree_curves"], underlying), mat)
-
+    @assert haskey(ctx.attr, "carry_type") "Contract attribute `carry_type` is missing"
     carry_type = ctx.attr["carry_type"]
 
     if (
