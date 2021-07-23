@@ -16,10 +16,19 @@ So, its value is indexed by a date or datetime.
 """
 abstract type Observable{T} end
 
+#=
 """
 The value of `CurrentDate()` at date `dt` is just `dt`.
 """
 struct CurrentDate <: Observable{Date} end
+=#
+
+"""
+    PricingDate <: Observable{Date}
+
+Represents the pricing date
+"""
+struct PricingDate <: Observable{Date} end
 
 """
 The value of `Konst(x)` is always `x` at any date.
@@ -28,19 +37,25 @@ struct Konst{T} <: Observable{T}
     val::T
 end
 
-struct ObservableAt{T} <: Observable{T}
-    at::Date
+struct ObservableAt{D<:Observable{Date},T} <: Observable{T}
+    at::D
     o::Observable{T}
 end
 
 """
-    at(date::Date, observable)
+    at(date, observable)
 
 Fixes observation date of `observable`
 at `date`.
+
+`date` might be a `Date` or `Observable{Date}`.
 """
 at(date::Date, k::Konst) = k
-at(date::Date, o::Observable) = ObservableAt(date, o)
+at(date::Date, o::Observable) = ObservableAt(Konst(date), o)
+
+function at(d::D, o::Observable) where {D<:Observable{Date}}
+    return ObservableAt(d, o)
+end
 
 function at(date::Date, oat::ObservableAt)
     @assert date == oat.at
@@ -48,11 +63,14 @@ function at(date::Date, oat::ObservableAt)
 end
 
 """
-MarketData historical series value observed at the contract acquisition date.
+MarketData historical series value observed at
+date infered by `at` observable,
+asof `PricingDate`.
 """
-struct HistoricalValue <: Observable{Float64}
+struct HistoricalValue{D<:Observable{Date}} <: Observable{Float64}
     serie_name::String
     locf::Bool
+    at::D
 end
 
 """

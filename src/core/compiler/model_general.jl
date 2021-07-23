@@ -15,6 +15,31 @@ lower!(ctx::CompilerContext, c::Contract) = lower!(ctx, c, initial_state(ctx))
 # Observables
 #
 
+function resolve_compile_time_value(ctx::CompilerContext, o::Konst, state)
+    return o.val
+end
+
+function resolve_compile_time_value(ctx::CompilerContext, o::PricingDate, state) :: Date
+    return get_pricing_date(ctx)
+end
+
+function resolve_compile_time_value(ctx::CompilerContext, o::Observable, state)
+    error("Can´t resolve observable value at compile-time: $o.")
+end
+
+function resolve_compile_time_value(ctx::CompilerContext, o::HistoricalValue, state)
+    provider = get_market_data_provider(ctx)
+    pricing_date = get_pricing_date(ctx)
+    serie_sym = Symbol(o.serie_name)
+    at = resolve_compile_time_value(ctx, o.at, state)
+    asof = pricing_date
+    val = MarketData.get_value(provider, serie_sym, at, asof; locf=o.locf)
+    if ismissing(val)
+        error("Value for $(o.serie_name) at $at asof $asof is missing")
+    end
+    return val
+end
+
 function lower!(ctx::CompilerContext, o::Konst, state) :: OptimizingIR.ImmutableValue
     return OptimizingIR.constant(o.val)
 end
@@ -74,20 +99,15 @@ end
     end
 end
 
+function lower!(ctx::CompilerContext, o::PricingDate, state) :: OptimizingIR.ImmutableValue
+    pricing_date = get_pricing_date(ctx)
+    return lower!(ctx, Konst(pricing_date), state)
+end
+
 # HistoricalValue degenerates to Konst
 function lower!(ctx::CompilerContext, o::HistoricalValue, state) :: OptimizingIR.ImmutableValue
-    assert_at_initial_state(ctx, state)
-    provider = get_market_data_provider(ctx)
-    pricing_date = get_pricing_date(ctx)
-
-    serie_sym = Symbol(o.serie_name)
-    at = pricing_date
-    asof = pricing_date
-    val = MarketData.get_value(provider, serie_sym, at, asof; locf=o.locf)
-    if ismissing(val)
-        error("Value for $(o.serie_name) at $at asof $asof is missing")
-    end
-    return lower!(ctx, Konst(val), pricing_date)
+    val = resolve_compile_time_value(ctx, o, state)
+    return lower!(ctx, Konst(val), state)
 end
 
 function lower!(ctx::CompilerContext, o::BufferedObservable, state) :: OptimizingIR.ImmutableValue

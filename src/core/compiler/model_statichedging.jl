@@ -82,9 +82,8 @@ function lower!(ctx::CompilerContext{M}, c::Unit{Stock}, at::Date) where {M<:Sta
     return lower!(ctx, c.o, at)
 end
 
-function lower!(ctx::CompilerContext{M}, o::ObservableAt, at::Date) :: OptimizingIR.ImmutableValue where {M<:StaticHedgingModel}
-    @assert o.at <= at "Observable date was fixed to ($(o.at)), and can't be valued after date ($(at))"
-    return lower!(ctx, o.o, o.at)
+function lower!(ctx::CompilerContext, o::ObservableAt, at::Date) :: OptimizingIR.ImmutableValue where {M<:StaticHedgingModel}
+    return lower!(ctx, o.o, resolve_compile_time_value(ctx, o.at, at))
 end
 
 # Present Value for a Unit

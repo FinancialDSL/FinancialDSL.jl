@@ -9,6 +9,7 @@ import ..BusinessDays
 import ..BS
 import ..CAL_BRL
 import ..InterestRates
+import ..Observable
 import ..Konst
 import ..RiskFactor
 import ..ContractAttributes
@@ -19,6 +20,7 @@ import ..ObservableAt
 import ..BufferedObservable
 import ..LiftObs
 import ..LiftObs2
+import ..PricingDate
 import ..HistoricalValue
 import ..Scale
 import ..Worthless
