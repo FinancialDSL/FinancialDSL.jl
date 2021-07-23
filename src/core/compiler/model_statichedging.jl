@@ -107,22 +107,22 @@ function lower!(ctx::CompilerContext{M}, c::WhenAt{U}, at::Date) :: OptimizingIR
     carry_type = get_carry_type(ctx.attr)
 
     if (
-        carry_type == "none" # there's no carry curve
-        || (carry_type == "curve" && !has_carry_curve(ctx.attr, underlying) ) # there's a carry curve, but not for the current underlying
+        carry_type == CARRY_TYPE_NONE # there's no carry curve
+        || (carry_type == CARRY_TYPE_CURVE && !has_carry_curve(ctx.attr, underlying) ) # there's a carry curve, but not for the current underlying
         || unit.carryless # the unit contract was declared caryless
         )
 
         # caryless cashflows are discounted using only the riskfree curve
         discount_factor_process = lower!(ctx, riskfree_discount_factor, at)
 
-    elseif carry_type == "curve"
+    elseif carry_type == CARRY_TYPE_CURVE
         carry_discount_factor_observable = DiscountFactor(get_carry_curve_symbol(ctx.attr, underlying), mat)
         riskfree_discount_factor_process = lower!(ctx, riskfree_discount_factor, at)
         carry_discount_factor_process = lower!(ctx, carry_discount_factor_observable, at)
         discount_factor_process = add_instruction!(ctx, OP_BIN_SCALAR_MUL, riskfree_discount_factor_process, carry_discount_factor_process)
 
-    elseif carry_type == "curve_lookup"
-        error("carry_type $carry_type not implemented")
+    #elseif carry_type == "curve_lookup"
+    #    error("carry_type $carry_type not implemented")
         #contract_id = get(attr, :extern_contract_id, missing)
         #counterpart_id = get(attr, :extern_counterpart_id, missing)
 

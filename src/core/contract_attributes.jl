@@ -1,4 +1,7 @@
 
+const CARRY_TYPE_NONE = "none"
+const CARRY_TYPE_CURVE = "curve"
+
 ContractAttributes() = ContractAttributes(Dict{String, Any}())
 
 Base.setindex!(a::ContractAttributes, x, y) = setindex!(a.attributes, x, y)

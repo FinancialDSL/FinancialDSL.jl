@@ -31,6 +31,8 @@ import ..Either
 import ..Unit
 import ..Contract
 import ..get_carry_type
+import ..CARRY_TYPE_NONE
+import ..CARRY_TYPE_CURVE
 import ..has_carry_curve
 import ..get_carry_curve_symbol
 import ..Currencies
