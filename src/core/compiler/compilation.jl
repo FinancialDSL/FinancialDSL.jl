@@ -64,19 +64,19 @@ function _compile_pricing_function(
             auto_resize_buffers::Bool=true
         )
 
-    if compiler == :interpreter
+    if compiler === :interpreter
 
-        if memory_buffer == nothing
+        if memory_buffer === nothing
             memory_buffer = Vector{Any}()
         end
 
-        if input_values_buffer == nothing
+        if input_values_buffer === nothing
             input_values_buffer = Vector{Any}()
         end
 
         return OptimizingIR.BasicBlockInterpreter(program, memory_buffer, input_values_buffer, auto_resize_buffers=auto_resize_buffers)
 
-    elseif compiler == :native
+    elseif compiler === :native
         return OptimizingIR.compile(OptimizingIR.Native, program)
     else
         error("Unknown compiler type: $compiler")
@@ -161,7 +161,7 @@ function CompilerResult(ctx::CompilerContext{M, D, IR, P}) where {M, D, IR<:Opti
     price_output_index = OptimizingIR.indexof(ctx.program.outputs, OptimizingIR.ImmutableVariable(:price))
 
     # an AbstractCashflowPricer has a return value for each cashflow
-    @assert ctx.output_var_to_cashflowtype != nothing
+    @assert ctx.output_var_to_cashflowtype !== nothing
     output_index_to_cashflow_type = Dict{Int, CashflowType}()
     for (output_variable, cftype) in ctx.output_var_to_cashflowtype
         output_index_to_cashflow_type[OptimizingIR.indexof(ctx.program.outputs, output_variable)] = cftype

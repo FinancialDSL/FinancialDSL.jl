@@ -82,7 +82,7 @@ function lower!(ctx::CompilerContext{B}, c::EuropeanOption, at::Date) :: Optimiz
     arg_strike = lower!(clone_context_with_model(ctx, ctx.model.static_model), WhenAt(maturity, legs.strike), at)
     arg_vol = lower!(ctx, Volatility(underlying_stock_observable), at)
 
-    op_bs = legs.call_or_put == :call ? OP_BLACK_FORMULA_CALL : OP_BLACK_FORMULA_PUT
+    op_bs = legs.call_or_put === :call ? OP_BLACK_FORMULA_CALL : OP_BLACK_FORMULA_PUT
     return add_instruction!(ctx, op_bs, arg_stock, arg_strike, arg_years_to_maturity, arg_vol)
 end
 

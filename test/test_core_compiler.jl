@@ -23,7 +23,7 @@
     end
 
     let
-        filtered_risk_factors = filter( x -> FinancialDSL.Core.risk_factor_symbol(x) == :USD, table)
+        filtered_risk_factors = filter( x -> FinancialDSL.Core.risk_factor_symbol(x) === :USD, table)
         @test filtered_risk_factors[1] == FinancialDSL.Core.SpotCurrency(USD)
         @test length(filtered_risk_factors) == 1
         @test isa(filtered_risk_factors, AbstractVector)

@@ -1,7 +1,7 @@
 
 @testset "Algebra and Properties" begin
     @test USD == FinancialDSL.Currencies.Currency(:USD)
-    @test FinancialDSL.Currencies.currency_symbol(FinancialDSL.Currencies.Currency(:X)) == :X
+    @test FinancialDSL.Currencies.currency_symbol(FinancialDSL.Currencies.Currency(:X)) === :X
     @test 1BRL == FinancialDSL.Currencies.Cash{FinancialDSL.Currencies.Currency{:BRL}, Int}(1)
     @test 10.2BRL > 10BRL
     @test 1BRL + 20.5BRL == 21.5BRL

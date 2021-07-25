@@ -155,7 +155,7 @@ end
 
 function scenario_map_function(rf::FinancialDSL.Core.DiscountFactor, val::Number)
     # 10% increase on BRL discount factor
-    if FinancialDSL.Core.market_data_symbol(rf) == :PRE
+    if FinancialDSL.Core.market_data_symbol(rf) === :PRE
         return identity(val)
     else
         return val * 1.1
@@ -693,7 +693,7 @@ end
 
 @testset "FixedIncome" begin
     c = FinancialDSL.Core.FixedIncomeEvent(:AMORT, FinancialDSL.Core.WhenAt(Date(2019, 2, 1), FinancialDSL.Core.Amount(1.0BRL)))
-    @test FinancialDSL.Core.event_symbol(c) == :AMORT
+    @test FinancialDSL.Core.event_symbol(c) === :AMORT
     @test c.c == FinancialDSL.Core.WhenAt(Date(2019, 2, 1), FinancialDSL.Core.Amount(1.0BRL))
     @test c == FinancialDSL.Core.FixedIncomeEvent(:AMORT, Date(2019, 2, 1), 1.0, BRL)
 
@@ -764,11 +764,11 @@ end
     pricer = FinancialDSL.Core.compile_cashflow_pricer(empty_provider, pricing_date, fv_model, contract, attr)
     @test FinancialDSL.Core.get_functional_currency(pricer) == BRL
     for cf in FinancialDSL.Core.eachcashflow(pricer, empty_scenario)
-        if cf.event == :AMORT
+        if cf.event === :AMORT
             @test cf.maturity == Date(2020, 2, 1)
             @test cf.value == 10.0
             @test cf.currency == BRL
-        elseif cf.event == :INTEREST
+        elseif cf.event === :INTEREST
             @test cf.maturity == Date(2019, 2, 1)
             @test cf.value == 5.0
             @test cf.currency == BRL

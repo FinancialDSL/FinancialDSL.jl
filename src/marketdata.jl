@@ -62,7 +62,7 @@ has_value(provider::AbstractMarketDataProvider, serie_id, at, asof::Date; locf::
 function get_cash(provider::AbstractMarketDataProvider, serie_id, at, asof::Date; locf::Bool=false) :: Union{Missing, Currencies.Cash}
 
     currency = get_serie_currency(provider, serie_id)
-    if currency == nothing
+    if currency === nothing
         error("Serie $serie_id has no currency")
     end
 
