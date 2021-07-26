@@ -120,6 +120,19 @@ function lower!(ctx::CompilerContext, o::BufferedObservable, state) :: Optimizin
     return ctx.observables_buffer[key]
 end
 
+function lower!(ctx::CompilerContext, fwd::DiscountFactorForward, state) :: OptimizingIR.ImmutableValue
+    if get_pricing_date(ctx) == fwd.start_date
+        # when at start date, a DiscountFactorForward can be simplified to a DiscountFactor
+        return lower!(ctx, DiscountFactor(fwd.sym, fwd.end_date), state)
+    else
+        arg1 = DiscountFactor(fwd.sym, fwd.end_date)
+        arg2 = DiscountFactor(fwd.sym, fwd.start_date)
+
+        # arg1 / arg2
+        return lower!(ctx, LiftObs2(/, arg1, arg2), state)
+    end
+end
+
 #
 # Contracts
 #
