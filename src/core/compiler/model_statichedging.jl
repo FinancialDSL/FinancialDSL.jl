@@ -51,7 +51,7 @@ function lower!(ctx::CompilerContext{M}, c::Unit{Stock}, at::Date) where {M<:Sta
     return lower!(ctx, c.o, at)
 end
 
-function lower!(ctx::CompilerContext, o::ObservableAt, at::Date) :: OptimizingIR.ImmutableValue where {M<:StaticHedgingModel}
+function lower!(ctx::CompilerContext{M}, o::ObservableAt, at::Date) :: OptimizingIR.ImmutableValue where {M<:StaticHedgingModel}
     return lower!(ctx, o.o, resolve_compile_time_value(ctx, o.at, at))
 end
 

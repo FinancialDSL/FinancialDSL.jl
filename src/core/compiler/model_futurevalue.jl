@@ -25,8 +25,7 @@ function lower!(ctx::CompilerContext{FutureValueModel{C1}}, c::Unit{SpotCurrency
 end
 
 function lower!(ctx::CompilerContext{F}, o::ObservableAt, at::Date) :: OptimizingIR.ImmutableValue where {F<:FutureValueModel}
-    @assert o.at <= at "Observable date was fixed to ($(o.at)), and can't be valued after date ($(at))"
-    return lower!(ctx, o.o, o.at)
+    return lower!(ctx, o.o, resolve_compile_time_value(ctx, o.at, at))
 end
 
 function lower!(ctx::CompilerContext{F}, c::WhenAt{U}, at::Date) :: OptimizingIR.ImmutableValue where {U<:Unit, F<:FutureValueModel}
