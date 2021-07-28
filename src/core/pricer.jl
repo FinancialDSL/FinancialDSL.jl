@@ -78,8 +78,21 @@ Returns an iterator for the risk factors of the contract.
 function riskfactors end
 
 """
-	eachcashflow(p::AbstractCashflowPricer, scenario::Scenario) -> itr
+	foreachcashflow(f::Function, p::AbstractCashflowPricer, scenario::Scenario)
 
-Returns an iterator for the cashflow of the contract.
+Applies `f` to each cashflow given by pricer `p` under `scenario`.
 """
-function eachcashflow end
+function foreachcashflow end
+
+"""
+    collect_cashflows(p::AbstractCashflowPricer, scenario::Scenario) :: Vector{Cashflow}
+
+Returns all cashflows given by pricer `p` under `scenario` as a vector with eltype `Cashflow`.
+"""
+function collect_cashflows(p::AbstractCashflowPricer, scenario::Scenario) :: Vector{Cashflow}
+    result = Vector{Cashflow}()
+    foreachcashflow(p, scenario) do cashflow
+        push!(result, cashflow)
+    end
+    return result
+end

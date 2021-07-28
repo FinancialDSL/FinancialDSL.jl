@@ -85,27 +85,17 @@ function price(program::AbstractPricer, scenario::Scenario) :: Number
     return f(x)
 end
 
-function eachcashflow(p::CashflowPricer, scenario::Scenario) :: Vector{Cashflow}
-
-    if isempty(p.output_index_to_cashflow_type)
-        return Vector{Cashflow}()
-    else
-
-        cashflows = Vector{Cashflow}(undef, length(p.output_index_to_cashflow_type))
-
+function foreachcashflow(f::Function, p::CashflowPricer, scenario::Scenario)
+    if !isempty(p.output_index_to_cashflow_type)
         x = price_input_vector(p, scenario)
         result = p.pricing_function(x)
 
-        i = 1
         for (index, cftype) in p.output_index_to_cashflow_type
             val = result[index]
             cf = Cashflow(cftype.event, cftype.maturity, val, p.currency)
-            cashflows[i] = cf
-            i += 1
+            f(cf)
         end
     end
-
-    return cashflows
 end
 
 function exposures(::DeltaNormalExposuresMethod, program::AbstractPricer, scenario::Scenario) :: ExposureResult

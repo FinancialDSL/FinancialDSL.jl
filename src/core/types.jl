@@ -580,12 +580,9 @@ abstract type AbstractPricer end
     AbstractCashflowPricer
 
 Used for Cashflow projection.
-Has the same interface as `AbstractPricer`,
-and also:
+Has the same interface as `AbstractPricer`.
 
-`eachcashflow(p::AbstractCashflowPricer, scenario::Scenario) -> itr`
-
-where `itr` is a `Cashflow` iterator.
+See also [`foreachcashflow`](@ref), [`collect_cashflows`](@ref).
 """
 abstract type AbstractCashflowPricer <: AbstractPricer end
 

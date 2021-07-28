@@ -741,7 +741,7 @@ end
     empty_scenario = FinancialDSL.Core.FixedScenario()
     pricer = FinancialDSL.Core.compile_cashflow_pricer(empty_provider, pricing_date, fv_model, contract, attr)
     @test FinancialDSL.Core.get_functional_currency(pricer) == BRL
-    for cf in FinancialDSL.Core.eachcashflow(pricer, empty_scenario)
+    for cf in FinancialDSL.Core.collect_cashflows(pricer, empty_scenario)
         if cf.event === :AMORT
             @test cf.maturity == Date(2020, 2, 1)
             @test cf.value == 10.0

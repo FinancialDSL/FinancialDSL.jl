@@ -61,7 +61,7 @@ import ..exch
 import ..risk_factor_symbol
 import ..market_data_symbol
 import ..get_functional_currency
-import ..eachcashflow
+import ..foreachcashflow
 import ..event_symbol
 import ..get_horizon
 import ..Cashflow
