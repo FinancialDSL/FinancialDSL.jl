@@ -253,8 +253,6 @@ end
 end
 
 function lower!(ctx::CompilerContext, contract::FixedIncomeContract, state) :: OptimizingIR.ImmutableValue
-    #assert_at_initial_state(ctx, state)
-
     return mapfoldl(
         event -> lower!(ctx, event, state), # map
         (arg1, arg2) -> add_instruction!(ctx, OP_BIN_SCALAR_SUM, arg1, arg2), # reduce
@@ -264,7 +262,6 @@ function lower!(ctx::CompilerContext, contract::FixedIncomeContract, state) :: O
 end
 
 function lower!(ctx::CompilerContext, c::SwapContract, state) :: OptimizingIR.ImmutableValue
-    #assert_at_initial_state(ctx, state)
     arg1 = lower!(ctx, c.asset, state)
     arg2 = lower!(ctx, Give(c.liability), state)
 
