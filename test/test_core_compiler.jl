@@ -44,6 +44,29 @@ end
     scenario[FinancialDSL.Core.DiscountFactor(:cpUSD, Date(2019, 2, 1))] = 0.8
 
     let
+        # Test for ReduceObs
+        obs_scale = FinancialDSL.Core.ReduceObs(+, FinancialDSL.Core.Konst(0.0))
+        push!(obs_scale.observables, FinancialDSL.Core.Konst(5.0))
+        push!(obs_scale.observables, FinancialDSL.Core.LiftObs2(*, FinancialDSL.Core.Konst(2.0), FinancialDSL.Core.Konst(3.0)))
+        push!(obs_scale.observables, FinancialDSL.Core.LiftObs(-, FinancialDSL.Core.Konst(1.0)))
+
+        contract = FinancialDSL.Core.Scale(obs_scale, FinancialDSL.Core.Unit(FinancialDSL.Core.SpotCurrency(BRL)))
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, contract, attr)
+        p = FinancialDSL.Core.price(pricer, scenario)
+        @test p ≈ 10.0
+    end
+
+    let
+        # Test for ReduceObs with a single element
+        obs_scale = FinancialDSL.Core.ReduceObs(+, FinancialDSL.Core.Konst(1.0))
+
+        contract = FinancialDSL.Core.Scale(obs_scale, FinancialDSL.Core.Unit(FinancialDSL.Core.SpotCurrency(BRL)))
+        pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, contract, attr)
+        p = FinancialDSL.Core.price(pricer, scenario)
+        @test p ≈ 1.0
+    end
+
+    let
         contract = FinancialDSL.Core.Both(
             FinancialDSL.Core.Both(FinancialDSL.Core.Amount(10.0, BRL), FinancialDSL.Core.Amount(10.0, BRL)),
             FinancialDSL.Core.Amount(10.0, USD))

@@ -20,6 +20,7 @@ import ..ObservableAt
 import ..BufferedObservable
 import ..LiftObs
 import ..LiftObs2
+import ..ReduceObs
 import ..PricingDate
 import ..HistoricalValue
 import ..Scale

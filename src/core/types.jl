@@ -234,6 +234,21 @@ function LiftObs2(f::Function, o1::Observable, o2::Observable)
     return LiftObs2{typeof(f), R}(f, o1, o2)
 end
 
+struct ReduceObs{F<:Function, T} <: Observable{T}
+    f::F
+    observables::Vector{Observable{T}}
+end
+
+function ReduceObs(f::Function, ::Type{T}) where {T}
+    return ReduceObs{typeof(f), T}(f, Vector{Observable{T}}())
+end
+
+function ReduceObs(f::Function, first_obs::Observable{T}) where {T}
+    result = ReduceObs(f, T)
+    push!(result.observables, first_obs)
+    return result
+end
+
 """
 This struct is used to allow the reuse of
 the result of `Compiler.lower!` for observables

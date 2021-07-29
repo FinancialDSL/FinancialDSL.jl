@@ -54,7 +54,7 @@ function resolve_op(::Type{LiftObs{F, R}}) :: OptimizingIR.Op where {F<:Function
     elseif F == typeof(sqrt)
         return OP_UNARY_SCALAR_SQRT
     else
-        error("function $F not supported by `resolve_op`.")
+        error("function $F not supported by `resolve_op` for LiftObs.")
     end
 end
 
@@ -74,7 +74,21 @@ function resolve_op(::Type{LiftObs2{F, R}}) :: OptimizingIR.Op where {F<:Functio
     elseif F == typeof(max)
         return OP_BIN_SCALAR_MAX
     else
-        error("function $F not supported by `resolve_op`.")
+        error("function $F not supported by `resolve_op` for LiftObs2.")
+    end
+end
+
+function resolve_op(::Type{ReduceObs{F, T}}) :: OptimizingIR.Op where {F<:Function, T<:Number}
+    if F == typeof(+)
+        return OP_BIN_SCALAR_SUM
+    elseif F == typeof(*)
+        return OP_BIN_SCALAR_MUL
+    elseif F == typeof(min)
+        return OP_BIN_SCALAR_MIN
+    elseif F == typeof(max)
+        return OP_BIN_SCALAR_MAX
+    else
+        error("function $F not supported by `resolve_op` for ReduceObs.")
     end
 end
 
@@ -96,6 +110,33 @@ end
         arg1 = lower!(ctx, lo2.o1, state)
         arg2 = lower!(ctx, lo2.o2, state)
         return add_instruction!(ctx, $op, arg1, arg2)
+    end
+end
+
+@generated function lower!(ctx::CompilerContext, reduce_obs::ReduceObs, state) :: OptimizingIR.ImmutableValue
+
+    op = resolve_op(reduce_obs)
+
+    return quote
+        @assert !isempty(reduce_obs.observables) "ReduceObs has no elements"
+
+        if length(reduce_obs.observables) == 1
+
+            # assumes the only observable as the result
+            return lower!(ctx, first(reduce_obs.observables), state)
+
+        else
+
+            @assert length(reduce_obs.observables) > 1 # sanity-check
+            reduce_result = lower!(ctx, first(reduce_obs.observables), state)
+
+            for i in 2:length(reduce_obs.observables)
+                arg = lower!(ctx, reduce_obs.observables[i], state)
+                reduce_result = add_instruction!(ctx, $op, reduce_result, arg)
+            end
+
+            return reduce_result
+        end
     end
 end
 
