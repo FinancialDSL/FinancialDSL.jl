@@ -45,10 +45,10 @@ end
 
     let
         # Test for ReduceObs
-        obs_scale = FinancialDSL.Core.ReduceObs(+, FinancialDSL.Core.Konst(0.0))
-        push!(obs_scale.observables, FinancialDSL.Core.Konst(5.0))
-        push!(obs_scale.observables, FinancialDSL.Core.LiftObs2(*, FinancialDSL.Core.Konst(2.0), FinancialDSL.Core.Konst(3.0)))
-        push!(obs_scale.observables, FinancialDSL.Core.LiftObs(-, FinancialDSL.Core.Konst(1.0)))
+        obs_scale = FinancialDSL.Core.ReduceObs(+, Float64)
+        FinancialDSL.Core.push_reduce_obs!(obs_scale, FinancialDSL.Core.Konst(5.0))
+        FinancialDSL.Core.push_reduce_obs!(obs_scale, FinancialDSL.Core.LiftObs2(*, FinancialDSL.Core.Konst(2.0), FinancialDSL.Core.Konst(3.0)))
+        FinancialDSL.Core.push_reduce_obs!(obs_scale, FinancialDSL.Core.LiftObs(-, FinancialDSL.Core.Konst(1.0)))
 
         contract = FinancialDSL.Core.Scale(obs_scale, FinancialDSL.Core.Unit(FinancialDSL.Core.SpotCurrency(BRL)))
         pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, contract, attr)
@@ -58,8 +58,8 @@ end
 
     let
         # Test for ReduceObs with a single element
-        obs_scale = FinancialDSL.Core.ReduceObs(+, FinancialDSL.Core.Konst(1.0))
-
+        obs_scale = FinancialDSL.Core.ReduceObs(+, Float64)
+        FinancialDSL.Core.push_reduce_obs!(obs_scale, FinancialDSL.Core.Konst(1))
         contract = FinancialDSL.Core.Scale(obs_scale, FinancialDSL.Core.Unit(FinancialDSL.Core.SpotCurrency(BRL)))
         pricer = FinancialDSL.Core.compile_pricer(empty_provider, pricing_date, static_model, contract, attr)
         p = FinancialDSL.Core.price(pricer, scenario)

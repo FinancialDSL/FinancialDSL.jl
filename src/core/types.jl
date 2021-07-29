@@ -243,10 +243,19 @@ function ReduceObs(f::Function, ::Type{T}) where {T}
     return ReduceObs{typeof(f), T}(f, Vector{Observable{T}}())
 end
 
-function ReduceObs(f::Function, first_obs::Observable{T}) where {T}
-    result = ReduceObs(f, T)
-    push!(result.observables, first_obs)
-    return result
+function push_reduce_obs!(red::ReduceObs{F, T}, obs::Observable{T}) where {F, T}
+    push!(red.observables, obs)
+    nothing
+end
+
+# redefining push_obs! for Konst to avoid stackoverflow at convert Konst method
+function push_reduce_obs!(red::ReduceObs{F, T}, obs::Konst{T}) where {F, T}
+    push!(red.observables, obs)
+    nothing
+end
+
+function push_reduce_obs!(red::ReduceObs{F, T}, obs::Konst{R}) where {F, T, R}
+    push_reduce_obs!(red, Konst(convert(T, obs.val)))
 end
 
 """
