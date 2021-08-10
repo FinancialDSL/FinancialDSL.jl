@@ -209,7 +209,8 @@ struct At <: Observable{Bool}
 end
 =#
 
-obstype(::Observable{T}) where {T} = T
+@inline obstype(::Type{P}) where {T,P<:Observable{T}} = T
+@inline obstype(obs::Observable) = obstype(typeof(obs))
 
 struct LiftObs{F<:Function, R} <: Observable{R}
     f::F
@@ -540,10 +541,10 @@ are asked from this scenario.
 """
 struct DebugScenario <: Scenario
     scenario::Scenario
-    record::Dict{Any, Any}
+    record::Dict{RiskFactor, Union{obstype(RiskFactor), Currencies.Cash}}
 
     function DebugScenario(scenario::Scenario)
-        return new(scenario, Dict{Any, Any}())
+        return new(scenario, Dict{RiskFactor, Union{obstype(RiskFactor), Currencies.Cash}}())
     end
 end
 
