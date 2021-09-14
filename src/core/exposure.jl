@@ -1,10 +1,10 @@
 
 struct ExposureResult
     val::Dict{RiskFactor, Float64}
+end
 
-    function ExposureResult()
-        return new(Dict{RiskFactor, Float64}())
-    end
+function ExposureResult()
+    return ExposureResult(Dict{RiskFactor, Float64}())
 end
 
 Base.:(==)(ex1::ExposureResult, ex2::ExposureResult) = ex1.val == ex2.val
