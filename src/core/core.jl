@@ -14,6 +14,7 @@ using Dates
 using Printf
 
 include("types.jl")
+include("exposure.jl")
 include("observables_algebra.jl")
 include("exch.jl")
 include("contract_attributes.jl")

@@ -149,6 +149,35 @@ end
     end
 end
 
+@testset "ExposureResult" begin
+    exposure = FinancialDSL.Core.ExposureResult()
+    exposure[FinancialDSL.Core.DiscountFactor(:PRE, Date(2021, 2, 1))] = 10.0
+    exposure[FinancialDSL.Core.DiscountFactor(:cpDOL, Date(2021, 2, 1))] = 20.0
+    exposure[FinancialDSL.Core.SpotCurrency(USD)] = 30.0
+
+    exposure2 = FinancialDSL.Core.ExposureResult()
+    exposure2[FinancialDSL.Core.DiscountFactor(:PRE, Date(2021, 2, 1))] = 10.0
+    exposure2[FinancialDSL.Core.DiscountFactor(:cpDOL, Date(2021, 2, 1))] = 20.0
+    exposure2[FinancialDSL.Core.SpotCurrency(USD)] = 30.0
+
+    @test exposure == exposure2
+    @test hash(exposure) == hash(exposure2)
+
+    @test exposure * 2 == 2 * exposure
+    @test 2 * exposure == exposure + exposure
+    @test exposure == exposure + FinancialDSL.Core.ExposureResult()
+
+    exposure3 = FinancialDSL.Core.ExposureResult()
+    exposure3[FinancialDSL.Core.DiscountFactor(:PRE, Date(2021, 2, 1))] = 20.0
+    exposure3[FinancialDSL.Core.SpotCurrency(USD)] = -30.0
+
+    exposure4 = exposure + exposure3
+    @test exposure4[FinancialDSL.Core.DiscountFactor(:PRE, Date(2021, 2, 1))] ≈ 30.0
+    @test exposure4[FinancialDSL.Core.DiscountFactor(:cpDOL, Date(2021, 2, 1))] ≈ 20.0
+    @test !haskey(exposure4, FinancialDSL.Core.SpotCurrency(USD))
+    @test length(exposure4) == 2
+end
+
 function scenario_map_function(rf::FinancialDSL.Core.SpotCurrency, val::FinancialDSL.Currencies.Cash)
     return val * 1.05
 end
