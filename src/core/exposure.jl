@@ -1,6 +1,17 @@
 
 struct ExposureResult
     val::Dict{RiskFactor, Float64}
+
+    function ExposureResult(dict::Dict{RiskFactor, Float64})
+        # creates a copy insted of reusing the instance
+        dict_copy = Dict{RiskFactor, Float64}()
+
+        for (k, v) in dict
+            dict_copy[k] = v
+        end
+
+        return new(dict_copy)
+    end
 end
 
 function ExposureResult()
@@ -13,17 +24,6 @@ Base.hash(ex::ExposureResult) = hash(length(ex.val))
 #
 # ExposureResult API
 #
-
-function ExposureResult(d::Dict{RiskFactor, Float64})
-    # creates a copy insted of reusing the instance
-    result = ExposureResult()
-
-    for (k, v) in d
-        result[k] = v
-    end
-
-    return result
-end
 
 function Base.getindex(r::ExposureResult, k::RiskFactor) :: Float64
     return r.val[k]
