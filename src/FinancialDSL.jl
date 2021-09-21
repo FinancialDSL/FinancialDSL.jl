@@ -9,7 +9,7 @@ import OptimizingIR
 import Distributions
 import Roots
 
-const CAL_BRL = BusinessDays.Brazil()
+const CAL_BRL = BusinessDays.BRSettlement()
 
 function __init__()
     BusinessDays.initcache(CAL_BRL)
