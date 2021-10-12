@@ -22,6 +22,7 @@ import ..LiftObs
 import ..LiftObs2
 import ..ReduceObs
 import ..PricingDate
+import ..AdjustedDate
 import ..HistoricalValue
 import ..Scale
 import ..Worthless

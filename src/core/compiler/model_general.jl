@@ -23,6 +23,11 @@ function resolve_compile_time_value(ctx::CompilerContext, o::PricingDate, state)
     return get_pricing_date(ctx)
 end
 
+function resolve_compile_time_value(ctx::CompilerContext, o::AdjustedDate, state) :: Date
+    reference_date = resolve_compile_time_value(ctx, o.reference_date, state)
+    return BusinessDays.tobday(o.calendar, reference_date, forward=false)
+end
+
 function resolve_compile_time_value(ctx::CompilerContext, o::Observable, state)
     error("Can´t resolve observable value at compile-time: $o.")
 end
@@ -141,8 +146,13 @@ end
 end
 
 function lower!(ctx::CompilerContext, o::PricingDate, state) :: OptimizingIR.ImmutableValue
-    pricing_date = get_pricing_date(ctx)
+    pricing_date = resolve_compile_time_value(ctx, o, state)
     return lower!(ctx, Konst(pricing_date), state)
+end
+
+function lower!(ctx::CompilerContext, o::AdjustedDate, state) :: OptimizingIR.ImmutableValue
+    adjusted_date = resolve_compile_time_value(ctx, o, state)
+    return lower!(ctx, Konst(adjusted_date), state)
 end
 
 # HistoricalValue degenerates to Konst

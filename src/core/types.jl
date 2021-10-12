@@ -31,6 +31,23 @@ Represents the pricing date
 struct PricingDate <: Observable{Date} end
 
 """
+    AdjustedDate{D<:Observable{Date}} <: Observable{Date}
+
+Adjusts to last business day if `date` is not a bday
+following `calendar` holiday calendar.
+
+# Fields
+
+* `date`
+
+* `calendar`
+"""
+struct AdjustedDate{D<:Observable{Date}} <: Observable{Date}
+    date::D
+    calendar::BusinessDays.HolidayCalendar
+end
+
+"""
 The value of `Konst(x)` is always `x` at any date.
 """
 struct Konst{T} <: Observable{T}
