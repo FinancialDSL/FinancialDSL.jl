@@ -123,6 +123,17 @@ function create_pricer(
     )
 end
 
+function init_compiler_context(
+            model::PricingModel,
+            provider::MarketData.AbstractMarketDataProvider,
+            attributes::ContractAttributes,
+            pricing_date::Date,
+            target_pricer_type::Type{T}
+        ) where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
+
+    return CompilerContext(model, provider, attributes, pricing_date, OptimizingIR.ImmutableVariable(:risk_factors_values), target_pricer_type)
+end
+
 function compile_pricing_program(
             model::PricingModel,
             provider::MarketData.AbstractMarketDataProvider,
@@ -132,7 +143,7 @@ function compile_pricing_program(
             target_pricer_type::Type{T}
         ) where {T<:Union{AbstractPricer, AbstractCashflowPricer}}
 
-    ctx = CompilerContext(model, provider, attributes, pricing_date, OptimizingIR.ImmutableVariable(:risk_factors_values), target_pricer_type)
+    ctx = init_compiler_context(model, provider, attributes, pricing_date, target_pricer_type)
     price_value = lower!(ctx, contract)
     bind_output!(ctx, :price, price_value)
 
