@@ -43,7 +43,7 @@ following `calendar` holiday calendar.
 * `calendar`
 """
 struct AdjustedDate{D<:Observable{Date}} <: Observable{Date}
-    date::D
+    reference_date::D
     calendar::BusinessDays.HolidayCalendar
 end
 
