@@ -11,7 +11,7 @@ function get_riskfree_curve_symbol(m::StaticHedgingModel, kind::String, rf::Cash
     @assert haskey(m.riskfree_curve_map, kind) "Pricing Model doesn't know about a riskfree curve of type $kind. These are the available types of riskfree curves: $(collect(keys(m.riskfree_curve_map)))."
     riskfree_curve_map = m.riskfree_curve_map[kind]
     sym = risk_factor_symbol(rf)
-    @assert haskey(riskfree_curve_map, sym) "Risk factor $sym not available in this pricing model. These are the available items: $(collect(keys(riskfree_curve_map)))."
+    @assert haskey(riskfree_curve_map, sym) "Riskfree curve mapping is missing for $sym in this pricing model. These are the available items: $(collect(keys(riskfree_curve_map)))."
     return riskfree_curve_map[sym]
 end
 
