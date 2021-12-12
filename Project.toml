@@ -19,7 +19,7 @@ BusinessDays = "0.9"
 Distributions = "0.23, 0.24, 0.25"
 ForwardDiff = "0.10"
 InterestRates = "0.4.3, 0.5, 0.6"
-OptimizingIR = "0.2.5"
+OptimizingIR = "0.3"
 Roots = "1"
 julia = "1.2"
 
