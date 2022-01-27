@@ -56,22 +56,24 @@ function compile_pricer(
     return create_pricer(compiler_result, compiler=compiler)
 end
 
+const WORD_TYPE = Any
+
 function _compile_pricing_function(
             program::OptimizingIR.CompiledBasicBlock,
             compiler::Symbol;
-            memory_buffer::Union{Nothing, Vector{Any}}=nothing,
-            input_values_buffer::Union{Nothing, Vector{Any}}=nothing,
+            memory_buffer::Union{Nothing, Vector{WORD_TYPE}}=nothing,
+            input_values_buffer::Union{Nothing, Vector{WORD_TYPE}}=nothing,
             auto_resize_buffers::Bool=true
         )
 
     if compiler === :interpreter
 
         if memory_buffer === nothing
-            memory_buffer = Vector{Any}()
+            memory_buffer = Vector{WORD_TYPE}()
         end
 
         if input_values_buffer === nothing
-            input_values_buffer = Vector{Any}()
+            input_values_buffer = Vector{WORD_TYPE}()
         end
 
         return OptimizingIR.BasicBlockInterpreter(program, memory_buffer, input_values_buffer, auto_resize_buffers=auto_resize_buffers)
@@ -86,8 +88,8 @@ end
 function create_pricer(
             compiler_result::CompilerResult{OptimizingIR.CompiledBasicBlock, P};
             compiler::Symbol=:interpreter,
-            memory_buffer::Union{Nothing, Vector{Any}}=nothing,
-            input_values_buffer::Union{Nothing, Vector{Any}}=nothing,
+            memory_buffer::Union{Nothing, Vector{WORD_TYPE}}=nothing,
+            input_values_buffer::Union{Nothing, Vector{WORD_TYPE}}=nothing,
             auto_resize_buffers::Bool=true
         ) where {P<:AbstractPricer}
 
@@ -105,8 +107,8 @@ end
 function create_pricer(
             compiler_result::CompilerResult{OptimizingIR.CompiledBasicBlock, P};
             compiler::Symbol=:interpreter,
-            memory_buffer::Union{Nothing, Vector{Any}}=nothing,
-            input_values_buffer::Union{Nothing, Vector{Any}}=nothing,
+            memory_buffer::Union{Nothing, Vector{WORD_TYPE}}=nothing,
+            input_values_buffer::Union{Nothing, Vector{WORD_TYPE}}=nothing,
             auto_resize_buffers::Bool=true
         ) where {P<:AbstractCashflowPricer}
 
