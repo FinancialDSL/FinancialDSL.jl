@@ -20,7 +20,7 @@ Distributions = "0.23, 0.24, 0.25"
 ForwardDiff = "0.10"
 InterestRates = "0.4.3, 0.5, 0.6"
 OptimizingIR = "0.3"
-Roots = "1"
+Roots = "2"
 julia = "1.2"
 
 [extras]

@@ -44,12 +44,12 @@ end
 @inline price(::EuropeanCall, s, k, t, σ) = bscall(s, k, t, σ)
 @inline price(::EuropeanPut, s, k, t, σ) = bsput(s, k, t, σ)
 
-function impvol(opt::BSOption, observed_price, s, k, t, interval::Tuple=infer_impvol_interval(opt, observed_price, s, k, t))
+function impvol(opt::BSOption, observed_price, s, k, t, interval::Tuple=impvol_interval_heuristic(opt, observed_price, s, k, t))
     f(σ) = observed_price - price(opt, s, k, t, σ)
     return Roots.find_zero(f, interval, Roots.Bisection())
 end
 
-function infer_impvol_interval(opt::BSOption, observed_price, s, k, t)
+function impvol_interval_heuristic(opt::BSOption, observed_price, s, k, t)
     # most instruments have volatility values below 100%
     min_vol = 0.0
     max_vol = 1.0
