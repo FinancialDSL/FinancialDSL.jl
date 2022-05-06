@@ -212,8 +212,6 @@ end
 for T in (:FixedCashRiskFactor, :FixedNonCashRiskFactor)
     @eval begin
         risk_factor_symbol(rf::$T) = risk_factor_symbol(rf.rf)
-        Base.isless(x, rf::$T) = isless(x, rf.val)
-        Base.isless(rf::$T, x) = isless(rf.val, x)
     end
 end
 
