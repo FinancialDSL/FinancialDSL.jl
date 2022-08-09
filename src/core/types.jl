@@ -494,7 +494,7 @@ A Scenario is not required to be linked to a pricing date.
 
 * `Base.getindex(s, rf::NonCashRiskFactor) :: Float64`
 
-Se *writable*:
+For *writable* scenario instances:
 
 * `Base.setindex!(s, val, rf::RiskFactor)`
 
