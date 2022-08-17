@@ -87,17 +87,7 @@ end
     return result
 end
 
-@inline function Base.getindex(scenario::ActualScenario, rf::SpotCurrency{C}) :: Currencies.Cash where {C<:Currencies.Currency}
-    sym = market_data_symbol(rf)
-    result = MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym))
-    if ismissing(result)
-        error("Error getting value for risk factor $rf: value is missing for date $(scenario.date)")
-    else
-        return result
-    end
-end
-
-@inline function  Base.getindex(scenario::ActualScenario, rf::Stock) :: Currencies.Cash
+@inline function Base.getindex(scenario::ActualScenario, rf::CashRiskFactor) :: Currencies.Cash
     sym = market_data_symbol(rf)
     result = MarketData.get_cash(scenario.provider, sym, scenario.date, scenario.date; locf=get_locf_option(scenario, sym))
     if ismissing(result)
@@ -133,7 +123,7 @@ end
     return false
 end
 
-@inline function Base.getindex(composite::CompositeScenario, rf::RiskFactor) :: Float64
+@inline function Base.getindex(composite::CompositeScenario, rf::NonCashRiskFactor) :: Float64
     for scenario in composite.scenarios
         if haskey(scenario, rf)
             return scenario[rf]
@@ -142,7 +132,7 @@ end
     error("Scenario has no value for risk factor $rf.")
 end
 
-@inline function Base.getindex(composite::CompositeScenario, sc::SpotCurrency) :: Currencies.Cash
+@inline function Base.getindex(composite::CompositeScenario, sc::CashRiskFactor) :: Currencies.Cash
     for scenario in composite.scenarios
         if haskey(scenario, sc)
             return scenario[sc]
