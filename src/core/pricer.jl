@@ -80,7 +80,15 @@ function riskfactors end
 """
 	foreachcashflow(f::Function, p::AbstractCashflowPricer, scenario::Scenario)
 
-Applies `f` to each cashflow given by pricer `p` under `scenario`.
+Applies `f` to each `cashflow :: FinancialDSL.Core.Cashflow` given by pricer `p` under `scenario`.
+
+# Example
+
+```julia
+foreachcashflow(p, scenario) do cashflow
+    @assert isa(cashflow, FinancialDSL.Core.Cashflow)
+end
+```
 """
 function foreachcashflow end
 
