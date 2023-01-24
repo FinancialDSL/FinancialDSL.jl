@@ -85,7 +85,7 @@ Applies `f` to each `cashflow :: FinancialDSL.Core.Cashflow` given by pricer `p`
 # Example
 
 ```julia
-foreachcashflow(p, scenario) do cashflow
+FinancialDSL.Core.foreachcashflow(p, scenario) do cashflow
     @assert isa(cashflow, FinancialDSL.Core.Cashflow)
 end
 ```
