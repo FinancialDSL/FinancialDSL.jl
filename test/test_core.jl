@@ -178,6 +178,13 @@ end
     @test length(exposure4) == 2
 end
 
+@testset "FixedNonCashRiskFactor" begin
+    at = Date(2020, 7, 15)
+    rf = FinancialDSL.Core.FixedNonCashRiskFactor(FinancialDSL.Core.DiscountFactor(:BASIS_CDI, at), 1.0)
+    @test FinancialDSL.Core.market_data_symbol(rf) == :BASIS_CDI
+    @test FinancialDSL.Core.risk_factor_symbol(rf) == :BASIS_CDI_20200715
+end
+
 function scenario_map_function(rf::FinancialDSL.Core.SpotCurrency, val::FinancialDSL.Currencies.Cash)
     return val * 1.05
 end

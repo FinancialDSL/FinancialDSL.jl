@@ -211,6 +211,7 @@ end
 
 for T in (:FixedCashRiskFactor, :FixedNonCashRiskFactor)
     @eval begin
+        market_data_symbol(rf::$T) = market_data_symbol(rf.rf)
         risk_factor_symbol(rf::$T) = risk_factor_symbol(rf.rf)
     end
 end
